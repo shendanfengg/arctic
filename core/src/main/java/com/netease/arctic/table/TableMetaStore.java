@@ -190,17 +190,7 @@ public class TableMetaStore implements Serializable {
       try {
         LOG.info("thread: {} start init ugi", threadName);
         if (TableMetaStore.AUTH_METHOD_SIMPLE.equals(authMethod)) {
-          UserGroupInformation currentUser = UserGroupInformation.getCurrentUser();
-          if (currentUser == null || !currentUser.getAuthenticationMethod().equals(
-              UserGroupInformation.AuthenticationMethod.valueOf(authMethod)) ||
-              !currentUser.getUserName().equals(hadoopUsername)) {
-            System.setProperty(HADOOP_USER_PROPERTY, hadoopUsername);
-            UserGroupInformation.setConfiguration(getConfiguration());
-            UserGroupInformation.loginUserFromSubject(null);
-            ugi = UserGroupInformation.getLoginUser();
-          } else {
-            ugi = currentUser;
-          }
+          constructSimpleUgi();
           LOG.info("{} complete init ugi with {}", threadName, authMethod);
         } else if (TableMetaStore.AUTH_METHOD_KERBEROS.equals(authMethod)) {
           if (confCachePath == null) {
@@ -273,6 +263,16 @@ public class TableMetaStore implements Serializable {
             }
           }
         }
+      } else {
+        if (!ugi.getUserName().equals(hadoopUsername)) {
+          LOG.warn("usergroupinformation is not correct current user is {} target user is {}",
+              ugi.getUserName(), hadoopUsername);
+          try {
+            constructSimpleUgi();
+          } catch (IOException e) {
+            throw new RuntimeException("Fail to init user group information", e);
+          }
+        }
       }
     }
     return ugi;
@@ -287,6 +287,20 @@ public class TableMetaStore implements Serializable {
     UserGroupInformation.setConfiguration(getConfiguration());
     KerberosName.resetDefaultRealm();
     ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(krbPrincipal, keyTabFile);
+  }
+
+  private void constructSimpleUgi() throws IOException {
+    UserGroupInformation currentUser = UserGroupInformation.getCurrentUser();
+    if (currentUser == null || !currentUser.getAuthenticationMethod().equals(
+        UserGroupInformation.AuthenticationMethod.valueOf(authMethod)) ||
+        !currentUser.getUserName().equals(hadoopUsername)) {
+      System.setProperty(HADOOP_USER_PROPERTY, hadoopUsername);
+      UserGroupInformation.setConfiguration(getConfiguration());
+      UserGroupInformation.loginUserFromSubject(null);
+      ugi = UserGroupInformation.getLoginUser();
+    } else {
+      ugi = currentUser;
+    }
   }
 
   public <T> T doAs(Callable<T> callable) {
