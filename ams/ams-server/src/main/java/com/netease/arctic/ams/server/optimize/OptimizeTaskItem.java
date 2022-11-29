@@ -23,6 +23,7 @@ import com.netease.arctic.ams.api.ErrorMessage;
 import com.netease.arctic.ams.api.JobId;
 import com.netease.arctic.ams.api.OptimizeStatus;
 import com.netease.arctic.ams.api.OptimizeTaskId;
+import com.netease.arctic.ams.api.properties.OptimizeTaskProperties;
 import com.netease.arctic.ams.server.mapper.InternalTableFilesMapper;
 import com.netease.arctic.ams.server.mapper.OptimizeTaskRuntimesMapper;
 import com.netease.arctic.ams.server.mapper.OptimizeTasksMapper;
@@ -31,12 +32,17 @@ import com.netease.arctic.ams.server.model.BaseOptimizeTask;
 import com.netease.arctic.ams.server.model.BaseOptimizeTaskRuntime;
 import com.netease.arctic.ams.server.model.TableTaskHistory;
 import com.netease.arctic.ams.server.service.IJDBCService;
+import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.data.DataFileType;
+import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.table.TableIdentifier;
+import com.netease.arctic.table.TableProperties;
 import com.netease.arctic.utils.SerializationUtil;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.iceberg.ContentFile;
 import org.apache.iceberg.FileContent;
+import org.apache.iceberg.util.PropertyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +51,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class OptimizeTaskItem extends IJDBCService {
   private static final Logger LOG = LoggerFactory.getLogger(OptimizeTaskItem.class);
-  private static final long MAX_EXECUTE_TIME = 7200_000;// 2 hour
   // interval between failed and retry = (1 + retry) * RETRY_INTERVAL
   private static final long RETRY_INTERVAL = 60000; // 60s
 
@@ -152,7 +158,6 @@ public class OptimizeTaskItem extends IJDBCService {
       newRuntime.setStatus(OptimizeStatus.Failed);
       newRuntime.setPreparedTime(BaseOptimizeTaskRuntime.INVALID_TIME);
       newRuntime.setReportTime(reportTime);
-      newRuntime.setAttemptId(null);
       newRuntime.setCostTime(costTime);
       persistTaskRuntime(newRuntime, false);
       optimizeRuntime = newRuntime;
@@ -200,8 +205,11 @@ public class OptimizeTaskItem extends IJDBCService {
   }
 
   public boolean executeTimeout() {
+    long maxExecuteTime = PropertyUtil
+        .propertyAsLong(optimizeTask.getProperties(), OptimizeTaskProperties.MAX_EXECUTE_TIME,
+            TableProperties.OPTIMIZE_EXECUTE_TIMEOUT_DEFAULT);
     if (getOptimizeStatus() == OptimizeStatus.Executing) {
-      return System.currentTimeMillis() - optimizeRuntime.getExecuteTime() > MAX_EXECUTE_TIME;
+      return System.currentTimeMillis() - optimizeRuntime.getExecuteTime() > maxExecuteTime;
     }
     return false;
   }
@@ -249,6 +257,19 @@ public class OptimizeTaskItem extends IJDBCService {
         selectOptimizeTaskFiles(DataFileType.POS_DELETE_FILE, 1));
     optimizeRuntime.setTargetFiles(targetFiles.stream()
         .map(SerializationUtil::byteArrayToByteBuffer).collect(Collectors.toList()));
+  }
+
+  public void setMaxExecuteTime() {
+    // can update max execute time on optimizing
+    try {
+      ArcticTable arcticTable = ServiceContainer.getOptimizeService()
+          .getTableOptimizeItem(getTableIdentifier()).getArcticTable();
+      Long maxExecuteTime = PropertyUtil.propertyAsLong(arcticTable.properties(),
+          TableProperties.OPTIMIZE_EXECUTE_TIMEOUT, TableProperties.OPTIMIZE_EXECUTE_TIMEOUT_DEFAULT);
+      optimizeTask.getProperties().put(OptimizeTaskProperties.MAX_EXECUTE_TIME, String.valueOf(maxExecuteTime));
+    } catch (Exception e) {
+      LOG.error("update task max execute time failed.", e);
+    }
   }
 
   private List<byte[]> selectOptimizeTaskFiles(DataFileType fileType, int isTarget) {
