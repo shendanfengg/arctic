@@ -342,27 +342,28 @@ public class FileInfoCacheService extends IJDBCService {
   }
 
   private void syncCurrentSnapshotFile(Table table, TableIdentifier identifier, String tableType) {
-    Set<org.apache.iceberg.DataFile> dataFiles = new HashSet<>();
+    LOG.info("start sync current snapshot files for table {}", identifier);
     Set<String> addedDeleteFiles = new HashSet<>();
-    Set<org.apache.iceberg.DeleteFile> deleteFiles = new HashSet<>();
     Snapshot curr = table.currentSnapshot();
+    List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
     table.newScan().planFiles().forEach(fileScanTask -> {
-      dataFiles.add(fileScanTask.file());
+      cacheFileInfos.add(CacheFileInfo.convert(
+          table,
+          ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
+          identifier,
+          tableType,
+          curr));
       fileScanTask.deletes().forEach(deleteFile -> {
         if (!addedDeleteFiles.contains(deleteFile.path().toString())) {
-          deleteFiles.add(deleteFile);
+          cacheFileInfos.add(CacheFileInfo.convert(
+              table,
+              ConvertStructUtil.convertToAmsDatafile(deleteFile, (ArcticTable) table),
+              identifier,
+              tableType,
+              curr));
           addedDeleteFiles.add(deleteFile.path().toString());
         }
       });
-    });
-    List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
-    dataFiles.forEach(dataFile -> {
-      DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(table, amsFile, identifier, tableType, curr));
-    });
-    deleteFiles.forEach(dataFile -> {
-      DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(table, amsFile, identifier, tableType, curr));
     });
 
     long fileSize = 0L;
@@ -390,6 +391,7 @@ public class FileInfoCacheService extends IJDBCService {
           JSONObject.toJSONString(cacheFileInfos),
           e);
     }
+    LOG.info("end sync current snapshot files for table {}", identifier);
   }
 
   private List<CacheFileInfo> genFileInfo(TableCommitMeta tableCommitMeta) {
