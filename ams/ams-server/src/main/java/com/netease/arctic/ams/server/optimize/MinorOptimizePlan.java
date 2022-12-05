@@ -36,6 +36,7 @@ import com.netease.arctic.utils.TablePropertyUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.iceberg.ContentFile;
 import org.apache.iceberg.DataFile;
+import org.apache.iceberg.DataFiles;
 import org.apache.iceberg.DeleteFile;
 import org.apache.iceberg.FileContent;
 import org.apache.iceberg.PartitionSpec;
@@ -186,7 +187,6 @@ public class MinorOptimizePlan extends BaseOptimizePlan {
     AtomicInteger addCnt = new AtomicInteger();
     unOptimizedChangeFiles.forEach(f -> {
       DataFileInfo dataFileInfo = f.getDataFileInfo();
-      DataFile dataFile = f.getDataFile();
       long transactionId = f.getTransactionId();
 
       String partition = dataFileInfo.getPartition() == null ? "" : dataFileInfo.getPartition();
@@ -194,6 +194,7 @@ public class MinorOptimizePlan extends BaseOptimizePlan {
         return;
       }
       if (!anyTaskRunning(partition)) {
+        DataFile dataFile = f.getDataFile();
         FileTree treeRoot =
             partitionFileTree.computeIfAbsent(partition, p -> FileTree.newTreeRoot());
         treeRoot.putNodeIfAbsent(DataTreeNode.of(dataFileInfo.getMask(), dataFileInfo.getIndex()))
@@ -215,22 +216,36 @@ public class MinorOptimizePlan extends BaseOptimizePlan {
         tableId(), getOptimizeType(), addCnt, unOptimizedChangeFiles.size(), partitionFileTree.size());
   }
   
-  private static class ChangeFileInfo {
+  private class ChangeFileInfo {
     private final DataFileInfo dataFileInfo;
-    private final DataFile dataFile;
+    private final PartitionSpec partitionSpec;
+    private DataFile dataFile;
     private final long transactionId;
 
-    public ChangeFileInfo(DataFileInfo dataFileInfo, DataFile dataFile) {
+    public ChangeFileInfo(DataFileInfo dataFileInfo) {
       this.dataFileInfo = dataFileInfo;
-      this.dataFile = dataFile;
       this.transactionId = FileUtil.parseFileTidFromFileName(dataFileInfo.getPath());
+      KeyedTable keyedArcticTable = arcticTable.asKeyedTable();
+      this.partitionSpec = keyedArcticTable.changeTable()
+          .specs().get((int) dataFileInfo.getSpecId());
     }
 
     public DataFileInfo getDataFileInfo() {
       return dataFileInfo;
     }
+    
+    public StructLike partition() {
+      if (partitionSpec.isUnpartitioned()) {
+        return TablePropertyUtil.EMPTY_STRUCT;
+      } else {
+        return DataFiles.data(this.partitionSpec, dataFileInfo.getPartition());
+      }
+    }
 
     public DataFile getDataFile() {
+      if (dataFile == null) {
+        this.dataFile = (DataFile) ContentFileUtil.buildContentFile(dataFileInfo, this.partitionSpec, fileFormat);
+      }
       return dataFile;
     }
 
@@ -253,8 +268,7 @@ public class MinorOptimizePlan extends BaseOptimizePlan {
     Preconditions.checkArgument(DataFileType.POS_DELETE_FILE != DataFileType.valueOf(dataFileInfo.getType()), 
         "not support pos-delete files in change table " + dataFileInfo.getPath());
 
-    DataFile dataFile = (DataFile) ContentFileUtil.buildContentFile(dataFileInfo, partitionSpec, fileFormat);
-    return new ChangeFileInfo(dataFileInfo, dataFile);
+    return new ChangeFileInfo(dataFileInfo);
   }
 
   private void addBaseFileIntoFileTree() {
@@ -342,7 +356,7 @@ public class MinorOptimizePlan extends BaseOptimizePlan {
   }
 
   private boolean isOptimized(ChangeFileInfo changeFileInfo) {
-    return changeFileInfo.getTransactionId() <= getBaseMaxTransactionId(changeFileInfo.getDataFile().partition());
+    return changeFileInfo.getTransactionId() <= getBaseMaxTransactionId(changeFileInfo.partition());
   }
 
   private void markMaxTransactionId(ContentFile<?> dataFile) {
