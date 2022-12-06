@@ -343,25 +343,28 @@ public class FileInfoCacheService extends IJDBCService {
 
   private void syncCurrentSnapshotFile(Table table, TableIdentifier identifier, String tableType) {
     LOG.info("start sync current snapshot files for table {}", identifier);
-    Set<String> addedDeleteFiles = new HashSet<>();
+    Set<String> addedFiles = new HashSet<>();
     Snapshot curr = table.currentSnapshot();
     List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
     table.newScan().planFiles().forEach(fileScanTask -> {
-      cacheFileInfos.add(CacheFileInfo.convert(
-          table,
-          ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
-          identifier,
-          tableType,
-          curr));
+      if (!addedFiles.contains(fileScanTask.file().path().toString())) {
+        cacheFileInfos.add(CacheFileInfo.convert(
+            table,
+            ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
+            identifier,
+            tableType,
+            curr));
+        addedFiles.add(fileScanTask.file().path().toString());
+      }
       fileScanTask.deletes().forEach(deleteFile -> {
-        if (!addedDeleteFiles.contains(deleteFile.path().toString())) {
+        if (!addedFiles.contains(deleteFile.path().toString())) {
           cacheFileInfos.add(CacheFileInfo.convert(
               table,
               ConvertStructUtil.convertToAmsDatafile(deleteFile, (ArcticTable) table),
               identifier,
               tableType,
               curr));
-          addedDeleteFiles.add(deleteFile.path().toString());
+          addedFiles.add(deleteFile.path().toString());
         }
       });
     });
