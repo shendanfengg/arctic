@@ -382,6 +382,11 @@ public class FileInfoCacheService extends IJDBCService {
         snapInfoCacheMapper.insertCache(snapshotInfo);
         sqlSession.commit();
       } catch (Exception e) {
+        LOG.error(
+            "insert table {} file {} cache error",
+            identifier,
+            JSONObject.toJSONString(cacheFileInfos),
+            e);
         sqlSession.rollback();
       }
     } catch (Exception e) {
