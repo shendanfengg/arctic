@@ -49,6 +49,8 @@ import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.trace.SnapshotSummary;
 import com.netease.arctic.utils.ConvertStructUtil;
 import com.netease.arctic.utils.SnapshotFileUtil;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.session.SqlSession;
@@ -56,8 +58,10 @@ import org.apache.iceberg.DataOperations;
 import org.apache.iceberg.DeleteFile;
 import org.apache.iceberg.FileContent;
 import org.apache.iceberg.FileScanTask;
+import org.apache.iceberg.FileScanTask;
 import org.apache.iceberg.Snapshot;
 import org.apache.iceberg.Table;
+import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.relocated.com.google.common.collect.Lists;
 import org.apache.iceberg.relocated.com.google.common.hash.Hashing;
@@ -357,24 +361,27 @@ public class FileInfoCacheService extends IJDBCService {
 
   private void syncCurrentSnapshotFile(Table table, TableIdentifier identifier, String tableType) {
     LOG.info("start sync current snapshot files for table {}", identifier);
-    Set<String> addedDeleteFiles = new HashSet<>();
+    Set<String> addedFiles = new HashSet<>();
     Snapshot curr = table.currentSnapshot();
     List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
     try (CloseableIterable<FileScanTask> fileScanTasks = table.newScan().planFiles()) {
       fileScanTasks.forEach(fileScanTask -> {
-        cacheFileInfos.add(CacheFileInfo.convert(
-            ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
-            identifier,
-            tableType,
-            curr));
+        if (!addedFiles.contains(fileScanTask.file().path().toString())) {
+          cacheFileInfos.add(CacheFileInfo.convert(
+              ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
+              identifier,
+              tableType,
+              curr));
+          addedFiles.add(fileScanTask.file().path().toString());
+        }
         fileScanTask.deletes().forEach(deleteFile -> {
-          if (!addedDeleteFiles.contains(deleteFile.path().toString())) {
+          if (!addedFiles.contains(deleteFile.path().toString())) {
             cacheFileInfos.add(CacheFileInfo.convert(
                 ConvertStructUtil.convertToAmsDatafile(deleteFile, (ArcticTable) table),
                 identifier,
                 tableType,
                 curr));
-            addedDeleteFiles.add(deleteFile.path().toString());
+            addedFiles.add(deleteFile.path().toString());
           }
         });
       });
