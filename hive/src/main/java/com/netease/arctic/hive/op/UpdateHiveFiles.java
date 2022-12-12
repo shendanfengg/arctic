@@ -113,11 +113,16 @@ public abstract class UpdateHiveFiles<T extends SnapshotUpdate<T>> implements Sn
       return;
     }
 
-    if (table.spec().isUnpartitioned()) {
-      commitNonPartitionedTable();
-    } else {
-      commitPartitionedTable();
+    try {
+      if (table.spec().isUnpartitioned()) {
+        commitNonPartitionedTable();
+      } else {
+        commitPartitionedTable();
+      }
+    } catch (Exception e) {
+      LOG.warn("Commit operation to HMS failed. ", e);
     }
+    
   }
 
   private void commitPartitionProperties() {
