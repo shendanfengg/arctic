@@ -88,8 +88,13 @@ public class ArcticHiveClientPool extends ClientPoolImpl<HMSClient, TException> 
   protected HMSClient reconnect(HMSClient client) {
     try {
       return metaStore.doAs(() -> {
-        client.close();
-        return newClient();
+        try {
+          client.close();
+          client.reconnect();
+        } catch (MetaException e) {
+          throw new RuntimeMetaException(e, "Failed to reconnect to Hive Metastore");
+        }
+        return client;
       });
     } catch (Exception e) {
       LOG.error("hive metastore client reconnected failed", e);
