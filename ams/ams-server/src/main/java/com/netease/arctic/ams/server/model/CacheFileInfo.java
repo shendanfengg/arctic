@@ -81,7 +81,7 @@ public class CacheFileInfo {
   }
 
   public static CacheFileInfo convert(DataFile amsFile, TableIdentifier identifier,
-      String tableType, Snapshot snapshot) {
+      String tableType, Snapshot snapshot, Long sequence) {
     String partitionName = StringUtils.isEmpty(partitionToPath(amsFile.getPartition())) ?
         "" :
         partitionToPath(amsFile.getPartition());
@@ -94,7 +94,7 @@ public class CacheFileInfo {
     String producer =
         snapshot.summary().getOrDefault(SnapshotSummary.SNAPSHOT_PRODUCER, SnapshotSummary.SNAPSHOT_PRODUCER_DEFAULT);
     return new CacheFileInfo(primaryKeyMd5, identifier, snapshot.snapshotId(),
-        parentId, null, snapshot.sequenceNumber(),
+        parentId, null, sequence == null ? snapshot.sequenceNumber() : sequence,
         tableType, amsFile.getPath(), amsFile.getFileType(), amsFile.getFileSize(), amsFile.getMask(),
         amsFile.getIndex(), amsFile.getSpecId(), partitionName, snapshot.timestampMillis(),
         amsFile.getRecordCount(), snapshot.operation(), producer);

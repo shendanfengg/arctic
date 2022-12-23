@@ -42,6 +42,7 @@ import com.netease.arctic.ams.server.service.IJDBCService;
 import com.netease.arctic.ams.server.service.IMetaService;
 import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.ams.server.utils.CatalogUtil;
+import com.netease.arctic.ams.server.utils.SequenceNumberFetcher;
 import com.netease.arctic.ams.server.utils.TableMetadataUtil;
 import com.netease.arctic.catalog.ArcticCatalog;
 import com.netease.arctic.catalog.CatalogLoader;
@@ -295,7 +296,7 @@ public class FileInfoCacheService extends IJDBCService {
       List<DataFile> deleteFiles = new ArrayList<>();
       SnapshotFileUtil.getSnapshotFiles((ArcticTable) table, snapshot, addFiles, deleteFiles);
       for (DataFile amsFile : addFiles) {
-        CacheFileInfo cacheFileInfo = CacheFileInfo.convert(amsFile, identifier, tableType, snapshot);
+        CacheFileInfo cacheFileInfo = CacheFileInfo.convert(amsFile, identifier, tableType, snapshot, null);
         fileInfos.add(cacheFileInfo);
       }
 
@@ -373,14 +374,17 @@ public class FileInfoCacheService extends IJDBCService {
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to close table scan of " + table.name(), e);
     }
+    SequenceNumberFetcher sequenceNumberFetcher = new SequenceNumberFetcher(table, curr.snapshotId());
     List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
     dataFiles.forEach(dataFile -> {
       DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr));
+      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr,
+          sequenceNumberFetcher.sequenceNumberOf(dataFile.path().toString())));
     });
     deleteFiles.forEach(dataFile -> {
       DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr));
+      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr,
+          sequenceNumberFetcher.sequenceNumberOf(dataFile.path().toString())));
     });
 
     long fileSize = 0L;
