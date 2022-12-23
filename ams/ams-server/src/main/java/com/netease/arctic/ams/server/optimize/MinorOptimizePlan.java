@@ -127,14 +127,18 @@ public class MinorOptimizePlan extends BaseArcticOptimizePlan {
 
   @Override
   protected List<BaseOptimizeTask> collectTask(String partition) {
-    List<BaseOptimizeTask> result;
+    List<BaseOptimizeTask> result = new ArrayList<>();
 
     FileTree treeRoot = partitionFileTree.get(partition);
-    result = collectKeyedTableTasks(partition, treeRoot);
+    if (treeRoot != null) {
+      result = collectKeyedTableTasks(partition, treeRoot);
+    }
     // init files
     partitionDeleteFiles.put(partition, Collections.emptyList());
     partitionPosDeleteFiles.put(partition, Collections.emptyList());
-    partitionFileTree.get(partition).initFiles();
+    if (treeRoot != null) {
+      treeRoot.initFiles();
+    }
 
     return result;
   }
