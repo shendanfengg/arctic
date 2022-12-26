@@ -149,7 +149,7 @@ public class TableProperties {
   public static final long WRITE_TARGET_FILE_SIZE_BYTES_DEFAULT = 134217728; // 128 MB
 
   public static final String UPSERT_ENABLED = "write.upsert.enabled";
-  public static final boolean UPSERT_ENABLED_DEFAULT = false;
+  public static final boolean UPSERT_ENABLED_DEFAULT = true;
 
   public static final String WRITE_DISTRIBUTION_MODE = org.apache.iceberg.TableProperties.WRITE_DISTRIBUTION_MODE;
   public static final String WRITE_DISTRIBUTION_MODE_NONE =
