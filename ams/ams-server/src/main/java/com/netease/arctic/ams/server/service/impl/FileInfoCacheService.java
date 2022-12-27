@@ -189,7 +189,7 @@ public class FileInfoCacheService extends IJDBCService {
       } catch (Exception e) {
         LOG.warn(
             String.format("load table error when sync file info cache:%s.%s.%s",
-            identifier.getCatalog(), identifier.getDatabase(), identifier.getTableName()),
+                identifier.getCatalog(), identifier.getDatabase(), identifier.getTableName()),
             e);
       }
 
@@ -357,35 +357,37 @@ public class FileInfoCacheService extends IJDBCService {
   }
 
   private void syncCurrentSnapshotFile(Table table, TableIdentifier identifier, String tableType) {
-    Set<org.apache.iceberg.DataFile> dataFiles = new HashSet<>();
-    Set<String> addedDeleteFiles = new HashSet<>();
-    Set<org.apache.iceberg.DeleteFile> deleteFiles = new HashSet<>();
+    LOG.info("start sync current snapshot files for table {}", identifier);
+    Set<String> addedFiles = new HashSet<>();
     Snapshot curr = table.currentSnapshot();
+    List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
+    SequenceNumberFetcher sequenceNumberFetcher = new SequenceNumberFetcher(table, curr.snapshotId());
     try (CloseableIterable<FileScanTask> fileScanTasks = table.newScan().planFiles()) {
       fileScanTasks.forEach(fileScanTask -> {
-        dataFiles.add(fileScanTask.file());
+        if (!addedFiles.contains(fileScanTask.file().path().toString())) {
+          cacheFileInfos.add(CacheFileInfo.convert(
+              ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
+              identifier,
+              tableType,
+              curr,
+              sequenceNumberFetcher.sequenceNumberOf(fileScanTask.file().path().toString())));
+          addedFiles.add(fileScanTask.file().path().toString());
+        }
         fileScanTask.deletes().forEach(deleteFile -> {
-          if (!addedDeleteFiles.contains(deleteFile.path().toString())) {
-            deleteFiles.add(deleteFile);
-            addedDeleteFiles.add(deleteFile.path().toString());
+          if (!addedFiles.contains(deleteFile.path().toString())) {
+            cacheFileInfos.add(CacheFileInfo.convert(
+                ConvertStructUtil.convertToAmsDatafile(deleteFile, (ArcticTable) table),
+                identifier,
+                tableType,
+                curr,
+                sequenceNumberFetcher.sequenceNumberOf(deleteFile.path().toString())));
+            addedFiles.add(deleteFile.path().toString());
           }
         });
       });
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to close table scan of " + table.name(), e);
     }
-    SequenceNumberFetcher sequenceNumberFetcher = new SequenceNumberFetcher(table, curr.snapshotId());
-    List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
-    dataFiles.forEach(dataFile -> {
-      DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr,
-          sequenceNumberFetcher.sequenceNumberOf(dataFile.path().toString())));
-    });
-    deleteFiles.forEach(dataFile -> {
-      DataFile amsFile = ConvertStructUtil.convertToAmsDatafile(dataFile, (ArcticTable) table);
-      cacheFileInfos.add(CacheFileInfo.convert(amsFile, identifier, tableType, curr,
-          sequenceNumberFetcher.sequenceNumberOf(dataFile.path().toString())));
-    });
 
     long fileSize = 0L;
     int fileCount = 0;
@@ -403,6 +405,11 @@ public class FileInfoCacheService extends IJDBCService {
         snapInfoCacheMapper.insertCache(snapshotInfo);
         sqlSession.commit();
       } catch (Exception e) {
+        LOG.error(
+            "insert table {} file {} cache error",
+            identifier,
+            JSONObject.toJSONString(cacheFileInfos),
+            e);
         sqlSession.rollback();
       }
     } catch (Exception e) {
@@ -412,6 +419,7 @@ public class FileInfoCacheService extends IJDBCService {
           JSONObject.toJSONString(cacheFileInfos),
           e);
     }
+    LOG.info("end sync current snapshot files for table {}", identifier);
   }
 
   private List<CacheFileInfo> genFileInfo(TableCommitMeta tableCommitMeta) {
