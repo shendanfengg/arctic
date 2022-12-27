@@ -42,6 +42,7 @@ import com.netease.arctic.ams.server.service.IJDBCService;
 import com.netease.arctic.ams.server.service.IMetaService;
 import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.ams.server.utils.CatalogUtil;
+import com.netease.arctic.ams.server.utils.SequenceNumberFetcher;
 import com.netease.arctic.ams.server.utils.TableMetadataUtil;
 import com.netease.arctic.catalog.ArcticCatalog;
 import com.netease.arctic.catalog.CatalogLoader;
@@ -49,8 +50,6 @@ import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.trace.SnapshotSummary;
 import com.netease.arctic.utils.ConvertStructUtil;
 import com.netease.arctic.utils.SnapshotFileUtil;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.session.SqlSession;
@@ -58,10 +57,8 @@ import org.apache.iceberg.DataOperations;
 import org.apache.iceberg.DeleteFile;
 import org.apache.iceberg.FileContent;
 import org.apache.iceberg.FileScanTask;
-import org.apache.iceberg.FileScanTask;
 import org.apache.iceberg.Snapshot;
 import org.apache.iceberg.Table;
-import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.relocated.com.google.common.collect.Lists;
 import org.apache.iceberg.relocated.com.google.common.hash.Hashing;
@@ -299,7 +296,7 @@ public class FileInfoCacheService extends IJDBCService {
       List<DataFile> deleteFiles = new ArrayList<>();
       SnapshotFileUtil.getSnapshotFiles((ArcticTable) table, snapshot, addFiles, deleteFiles);
       for (DataFile amsFile : addFiles) {
-        CacheFileInfo cacheFileInfo = CacheFileInfo.convert(amsFile, identifier, tableType, snapshot);
+        CacheFileInfo cacheFileInfo = CacheFileInfo.convert(amsFile, identifier, tableType, snapshot, null);
         fileInfos.add(cacheFileInfo);
       }
 
@@ -364,6 +361,7 @@ public class FileInfoCacheService extends IJDBCService {
     Set<String> addedFiles = new HashSet<>();
     Snapshot curr = table.currentSnapshot();
     List<CacheFileInfo> cacheFileInfos = new ArrayList<>();
+    SequenceNumberFetcher sequenceNumberFetcher = new SequenceNumberFetcher(table, curr.snapshotId());
     try (CloseableIterable<FileScanTask> fileScanTasks = table.newScan().planFiles()) {
       fileScanTasks.forEach(fileScanTask -> {
         if (!addedFiles.contains(fileScanTask.file().path().toString())) {
@@ -371,7 +369,8 @@ public class FileInfoCacheService extends IJDBCService {
               ConvertStructUtil.convertToAmsDatafile(fileScanTask.file(), (ArcticTable) table),
               identifier,
               tableType,
-              curr));
+              curr,
+              sequenceNumberFetcher.sequenceNumberOf(fileScanTask.file().path().toString())));
           addedFiles.add(fileScanTask.file().path().toString());
         }
         fileScanTask.deletes().forEach(deleteFile -> {
@@ -380,7 +379,8 @@ public class FileInfoCacheService extends IJDBCService {
                 ConvertStructUtil.convertToAmsDatafile(deleteFile, (ArcticTable) table),
                 identifier,
                 tableType,
-                curr));
+                curr,
+                sequenceNumberFetcher.sequenceNumberOf(deleteFile.path().toString())));
             addedFiles.add(deleteFile.path().toString());
           }
         });
