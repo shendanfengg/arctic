@@ -18,6 +18,8 @@
 
 package com.netease.arctic.hive;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -287,7 +289,9 @@ public class HMSMockServer {
   private void setupMetastoreDB(String jdbcUrl) throws SQLException, IOException {
     Connection connection = DriverManager.getConnection(jdbcUrl);
     ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-    InputStream inputStream = classLoader.getResourceAsStream("hive-schema-3.1.0.derby.sql");
+    InputStream inputStream = new BufferedInputStream(
+        new FileInputStream("C:\\Users\\shendanfeng01\\opensource\\arctic\\hive\\src" +
+            "\\test\\resources\\hive-schema-3.1.0.derby.sql"));
     connection.setAutoCommit(true);
     try (Reader reader = new InputStreamReader(inputStream)) {
       runScript(connection, reader);
