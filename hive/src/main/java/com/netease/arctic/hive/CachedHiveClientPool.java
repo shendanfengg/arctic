@@ -75,6 +75,14 @@ public class CachedHiveClientPool implements HMSClientPool, Serializable {
     try {
       return tableMetaStore.doAs(() -> clientPool().run(action));
     } catch (RuntimeException e) {
+      try {
+        clientPool().close();
+        clientPoolCache = null;
+        init();
+        tableMetaStore.doAs(() -> clientPool().run(action));
+      } catch (RuntimeException re) {
+        throw throwTException(re);
+      }
       throw throwTException(e);
     }
   }
@@ -84,6 +92,14 @@ public class CachedHiveClientPool implements HMSClientPool, Serializable {
     try {
       return tableMetaStore.doAs(() -> clientPool().run(action, retry));
     } catch (RuntimeException e) {
+      try {
+        clientPool().close();
+        clientPoolCache = null;
+        init();
+        tableMetaStore.doAs(() -> clientPool().run(action, retry));
+      } catch (RuntimeException re) {
+        throw throwTException(re);
+      }
       throw throwTException(e);
     }
   }
