@@ -68,7 +68,7 @@ public class CachedHiveClientPool implements HMSClientPool, Serializable {
   private synchronized void init() {
     if (clientPoolCache == null) {
       clientPoolCache = Caffeine.newBuilder().expireAfterAccess(evictionInterval, TimeUnit.MILLISECONDS)
-          .removalListener((keycd, value, cause) -> ((ArcticHiveClientPool) value).close())
+          .removalListener((key, value, cause) -> ((ArcticHiveClientPool) value).close())
           .build();
     }
   }
