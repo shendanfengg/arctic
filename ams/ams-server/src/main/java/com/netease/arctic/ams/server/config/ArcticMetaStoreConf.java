@@ -39,12 +39,12 @@ public class ArcticMetaStoreConf {
   public static final ConfigOption<Integer> THRIFT_WORKER_THREADS =
       ConfigOptions.key("arctic.ams.thrift.worker.threads")
           .intType()
-          .defaultValue(20)
+          .defaultValue(500)
           .withDescription("The number of worker threads in the Thrift server's pool.");
   public static final ConfigOption<Integer> THRIFT_SELECTOR_THREADS =
       ConfigOptions.key("arctic.ams.thrift.selector.threads")
           .intType()
-          .defaultValue(2)
+          .defaultValue(100)
           .withDescription("The number of selector threads in the Thrift server's pool.");
   public static final ConfigOption<Integer> THRIFT_QUEUE_SIZE_PER_THREAD =
       ConfigOptions.key("arctic.ams.thrift.selector.queue.size")
