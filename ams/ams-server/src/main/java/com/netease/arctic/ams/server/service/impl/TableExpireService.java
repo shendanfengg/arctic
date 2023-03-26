@@ -77,7 +77,8 @@ public class TableExpireService implements ITableExpireService {
     Set<TableIdentifier> ids =
         tables.stream().map(TableMetadata::getTableIdentifier).collect(Collectors.toSet());
     cleanTasks.checkRunningTask(ids,
-        tableId -> EXPIRE_INTERVAL,
+        () -> 0L,
+        () -> EXPIRE_INTERVAL,
         TableExpireTask::new,
         false);
     LOG.info("Schedule Expired Cleaner finished with {} valid ids", ids.size());
@@ -190,7 +191,8 @@ public class TableExpireService implements ITableExpireService {
 
     List<DataFileInfo> deleteFiles = new ArrayList<>();
     if (keyedTable.baseTable().spec().isUnpartitioned()) {
-      List<DataFileInfo> partitionDataFiles = partitionDataFileMap.get(changeDataFiles.get(0).getPartition());
+      List<DataFileInfo> partitionDataFiles =
+          partitionDataFileMap.get(changeDataFiles.get(0).getPartition());
 
       Long maxTransactionId = baseMaxTransactionId.get(TablePropertyUtil.EMPTY_STRUCT);
       if (CollectionUtils.isNotEmpty(partitionDataFiles)) {

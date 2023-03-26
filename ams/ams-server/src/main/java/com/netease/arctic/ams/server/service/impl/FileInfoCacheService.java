@@ -242,6 +242,7 @@ public class FileInfoCacheService extends IJDBCService {
       snapInfoCacheMapper.deleteTableCache(tableIdentifier);
     } catch (Exception e) {
       LOG.error("delete table file cache error ", e);
+      throw e;
     }
   }
 
@@ -258,6 +259,7 @@ public class FileInfoCacheService extends IJDBCService {
       snapInfoCacheMapper.deleteInnerTableCache(tableIdentifier, innerTable);
     } catch (Exception e) {
       LOG.error("delete table file cache error ", e);
+      throw e;
     }
   }
 

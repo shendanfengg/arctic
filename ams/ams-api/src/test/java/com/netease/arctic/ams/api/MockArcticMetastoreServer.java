@@ -53,6 +53,7 @@ public class MockArcticMetastoreServer implements Runnable {
   private boolean started = false;
   private final Object lock = new Object();
   private final AmsHandler amsHandler = new AmsHandler();
+  private final OptimizeManagerHandler optimizeManagerHandler = new OptimizeManagerHandler();
 
   private TServer server;
 
@@ -152,6 +153,11 @@ public class MockArcticMetastoreServer implements Runnable {
       ArcticTableMetastore.Processor<AmsHandler> amsProcessor =
           new ArcticTableMetastore.Processor<>(amsHandler);
       processor.registerProcessor("TableMetastore", amsProcessor);
+
+
+      OptimizeManager.Processor<OptimizeManagerHandler> optimizerManProcessor =
+          new OptimizeManager.Processor<>(optimizeManagerHandler);
+      processor.registerProcessor("OptimizeManager", optimizerManProcessor);
 
       TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(serverTransport)
           .processor(processor)
@@ -320,6 +326,48 @@ public class MockArcticMetastoreServer implements Runnable {
           return currentTxId + 1;
         }
       }
+    }
+
+    @Override
+    public void refreshTable(TableIdentifier tableIdentifier) throws OperationErrorException, TException {
+
+    }
+  }
+
+  public class OptimizeManagerHandler implements OptimizeManager.Iface {
+
+    public void cleanUp() {
+    }
+
+    @Override
+    public void ping() throws TException {
+
+    }
+
+    @Override
+    public OptimizeTask pollTask(int queueId, JobId jobId, String attemptId, long waitTime)
+        throws NoSuchObjectException, TException {
+      return null;
+    }
+
+    @Override
+    public void reportOptimizeResult(OptimizeTaskStat optimizeTaskStat) throws TException {
+
+    }
+
+    @Override
+    public void reportOptimizerState(OptimizerStateReport reportData) throws TException {
+
+    }
+
+    @Override
+    public void stopOptimize(TableIdentifier tableIdentifier) throws OperationErrorException, TException {
+
+    }
+
+    @Override
+    public void startOptimize(TableIdentifier tableIdentifier) throws OperationErrorException, TException {
+
     }
   }
 }

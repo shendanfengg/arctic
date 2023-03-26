@@ -28,6 +28,14 @@ import com.netease.arctic.ams.server.controller.TableControllerTest;
 import com.netease.arctic.ams.server.controller.TerminalControllerTest;
 import com.netease.arctic.ams.server.handler.impl.ArcticTableMetastoreHandler;
 import com.netease.arctic.ams.server.handler.impl.OptimizeManagerHandler;
+import com.netease.arctic.ams.server.maintainer.TestCommandParser;
+import com.netease.arctic.ams.server.maintainer.TestGetMaintainerConfig;
+import com.netease.arctic.ams.server.maintainer.command.TestAnalyzeCall;
+import com.netease.arctic.ams.server.maintainer.command.TestOptimizeCall;
+import com.netease.arctic.ams.server.maintainer.command.TestRepairCall;
+import com.netease.arctic.ams.server.maintainer.command.TestShowCall;
+import com.netease.arctic.ams.server.maintainer.command.TestTableCall;
+import com.netease.arctic.ams.server.maintainer.command.TestUseCall;
 import com.netease.arctic.ams.server.optimize.TableOptimizeItemTest;
 import com.netease.arctic.ams.server.optimize.TestExpiredFileClean;
 import com.netease.arctic.ams.server.optimize.TestExpiredFileCleanSupportHive;
@@ -35,6 +43,7 @@ import com.netease.arctic.ams.server.optimize.TestMajorOptimizeCommit;
 import com.netease.arctic.ams.server.optimize.TestMajorOptimizePlan;
 import com.netease.arctic.ams.server.optimize.TestMinorOptimizeCommit;
 import com.netease.arctic.ams.server.optimize.TestMinorOptimizePlan;
+import com.netease.arctic.ams.server.optimize.TestOptimizeService;
 import com.netease.arctic.ams.server.optimize.TestOrphanFileClean;
 import com.netease.arctic.ams.server.optimize.TestOrphanFileCleanSupportHive;
 import com.netease.arctic.ams.server.optimize.TestSupportHiveMajorOptimizeCommit;
@@ -50,6 +59,7 @@ import com.netease.arctic.ams.server.service.impl.CatalogMetadataService;
 import com.netease.arctic.ams.server.service.impl.DDLTracerService;
 import com.netease.arctic.ams.server.service.impl.FileInfoCacheService;
 import com.netease.arctic.ams.server.service.impl.JDBCMetaService;
+import com.netease.arctic.ams.server.service.impl.TrashCleanServiceTest;
 import com.netease.arctic.ams.server.util.DerbyTestUtil;
 import com.netease.arctic.ams.server.utils.CatalogUtil;
 import com.netease.arctic.ams.server.utils.JDBCSqlSessionFactoryProvider;
@@ -103,7 +113,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
     TestSupportHiveSyncService.class,
     TestExpiredFileCleanSupportHive.class,
     TestOrphanFileCleanSupportHive.class,
+    TrashCleanServiceTest.class,
     UnKeyedTableUtilTest.class,
+    TestOptimizeService.class,
     TableOptimizeItemTest.class
 })
 @PrepareForTest({

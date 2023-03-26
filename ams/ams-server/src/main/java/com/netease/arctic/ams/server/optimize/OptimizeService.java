@@ -40,6 +40,7 @@ import com.netease.arctic.ams.server.service.IMetaService;
 import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.ams.server.service.impl.OptimizeQueueService;
 import com.netease.arctic.ams.server.utils.ArcticMetaValidator;
+import com.netease.arctic.ams.server.utils.CatalogUtil;
 import com.netease.arctic.ams.server.utils.OptimizeStatusUtil;
 import com.netease.arctic.ams.server.utils.ScheduledTasks;
 import com.netease.arctic.ams.server.utils.ThreadPool;
@@ -125,7 +126,8 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
     List<TableIdentifier> validTables = listCachedTables(true);
     checkTasks.checkRunningTask(
         new HashSet<>(validTables),
-        identifier -> checkInterval,
+        () -> 0L,
+        () -> checkInterval,
         OptimizeCheckTask::new,
         false);
     LOG.info("Schedule Optimize Checker finished with {} valid tables", validTables.size());
@@ -201,6 +203,28 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
   public void handleOptimizeResult(OptimizeTaskStat optimizeTaskStat) throws NoSuchObjectException {
     getTableOptimizeItem(new TableIdentifier(optimizeTaskStat.getTableIdentifier()))
         .updateOptimizeTaskStat(optimizeTaskStat);
+  }
+
+  @Override
+  public void startOptimize(TableIdentifier tableIdentifier) throws NoSuchObjectException {
+    CatalogUtil.getArcticCatalog(tableIdentifier.getCatalog())
+        .loadTable(tableIdentifier)
+        .updateProperties()
+        .set(TableProperties.ENABLE_OPTIMIZE, "true")
+        .commit();
+  }
+
+  @Override
+  public void stopOptimize(TableIdentifier tableIdentifier) throws NoSuchObjectException {
+    try {
+      com.netease.arctic.ams.server.utils.CatalogUtil.getArcticCatalog(tableIdentifier.getCatalog())
+          .loadTable(tableIdentifier)
+          .updateProperties()
+          .set(TableProperties.ENABLE_OPTIMIZE, "false")
+          .commit();
+    } finally {
+      getTableOptimizeItem(tableIdentifier).optimizeTasksClear(true);
+    }
   }
 
   private void loadTables() {
