@@ -113,6 +113,11 @@ public class TableOptimizeItem extends IJDBCService {
   private final IQuotaService quotaService;
   private final AmsClient metastoreClient;
   private volatile double quotaCache;
+
+  private BaseOptimizeCommit optimizeCommit;
+  private long commitTime;
+  private static final long INIT_COMMIT_TIME = 0L;
+
   private final Predicate<Long> snapshotIsCached = new Predicate<Long>() {
     @Override
     public boolean apply(@Nullable Long snapshotId) {
@@ -197,7 +202,7 @@ public class TableOptimizeItem extends IJDBCService {
       if (waitCommit.get()) {
         return;
       }
-      if (!allTasksPrepared()) {
+      if (!allTasksPrepared() && !isRetryCommit()) {
         return;
       }
       boolean success = ServiceContainer.getOptimizeService().triggerOptimizeCommit(this);
@@ -705,6 +710,7 @@ public class TableOptimizeItem extends IJDBCService {
       sqlSession.commit(true);
     }
 
+    this.commitTime = INIT_COMMIT_TIME;
     updateTableOptimizeStatus();
   }
 
@@ -866,11 +872,14 @@ public class TableOptimizeItem extends IJDBCService {
     }
 
     try {
+      // If it is a retry task, do optimizeTasksCommitted()
+      if (isRetryCommit()) {
+        optimizeTasksCommitted(optimizeCommit, commitTime);
+      }
       Map<String, List<OptimizeTaskItem>> tasksToCommit = getOptimizeTasksToCommit();
       long taskCount = tasksToCommit.values().stream().mapToLong(Collection::size).sum();
       if (MapUtils.isNotEmpty(tasksToCommit)) {
         LOG.info("{} get {} tasks of {} partitions to commit", tableIdentifier, taskCount, tasksToCommit.size());
-        BaseOptimizeCommit optimizeCommit;
         if (TableTypeUtil.isHive(getArcticTable())) {
           optimizeCommit = new SupportHiveCommit(getArcticTable(true),
               tasksToCommit, OptimizeTaskItem::persistTargetFiles);
@@ -880,7 +889,7 @@ public class TableOptimizeItem extends IJDBCService {
 
         boolean committed = optimizeCommit.commit(tableOptimizeRuntime.getCurrentSnapshotId());
         if (committed) {
-          long commitTime = System.currentTimeMillis();
+          commitTime = System.currentTimeMillis();
           optimizeTasksCommitted(optimizeCommit, commitTime);
         } else {
           LOG.warn("{} commit failed, clear optimize tasks", tableIdentifier);
@@ -892,6 +901,14 @@ public class TableOptimizeItem extends IJDBCService {
     } finally {
       tasksCommitLock.unlock();
     }
+  }
+
+  /**
+   * Check if the task currently being submitted needs to be retried
+   * @return boolean
+   */
+  private boolean isRetryCommit() {
+    return commitTime != INIT_COMMIT_TIME;
   }
 
   /**
