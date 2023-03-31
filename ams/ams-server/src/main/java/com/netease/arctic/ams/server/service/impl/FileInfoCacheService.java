@@ -169,6 +169,7 @@ public class FileInfoCacheService extends IJDBCService {
 
   public void syncTableFileInfo(TableIdentifier identifier, String tableType) {
     LOG.info("start sync table {} file info", identifier);
+    long startTime = System.currentTimeMillis();
     try {
       // load table
       Table table = null;
@@ -238,6 +239,8 @@ public class FileInfoCacheService extends IJDBCService {
     } catch (Exception e) {
       LOG.error("sync cache info error " + identifier, e);
     }
+    long endTime = System.currentTimeMillis();
+    LOG.info("table {} syncTableFileInfo cost:{}", identifier, endTime - startTime);
   }
 
   public void deleteTableCache(com.netease.arctic.table.TableIdentifier identifier) {
