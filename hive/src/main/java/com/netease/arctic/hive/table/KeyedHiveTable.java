@@ -54,14 +54,14 @@ public class KeyedHiveTable extends BaseKeyedTable implements SupportHive {
     super(tableMeta, tableLocation, primaryKeySpec, client, baseTable, changeTable);
     this.hiveClient = hiveClient;
     syncHiveSchemaToArctic();
-    syncHiveDataToArctic();
+    //    syncHiveDataToArctic();
   }
 
   @Override
   public void refresh() {
     super.refresh();
     syncHiveSchemaToArctic();
-    syncHiveDataToArctic();
+    //    syncHiveDataToArctic();
   }
 
 

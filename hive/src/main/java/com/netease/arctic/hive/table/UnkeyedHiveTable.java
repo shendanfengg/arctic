@@ -74,14 +74,14 @@ public class UnkeyedHiveTable extends BaseUnkeyedTable implements BaseTable, Sup
     this.tableLocation = tableLocation;
     this.syncHiveChange = syncHiveChange;
     syncHiveSchemaToArctic();
-    syncHiveDataToArctic();
+    //    syncHiveDataToArctic();
   }
 
   @Override
   public void refresh() {
     super.refresh();
     syncHiveSchemaToArctic();
-    syncHiveDataToArctic();
+    //    syncHiveDataToArctic();
   }
 
   @Override
