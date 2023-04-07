@@ -100,7 +100,7 @@ public class FlinkExecuteFunction extends ProcessFunction<TaskWrapper, OptimizeT
     try {
       this.completedTasks.add(taskStat);
     } catch (IllegalStateException e) {
-      LOG.warn("completed queue may be full, poll the first one and retry add", e);
+      LOG.info("completed queue may be full, poll the first one and retry add");
       this.completedTasks.poll();
       this.completedTasks.add(taskStat);
     }
