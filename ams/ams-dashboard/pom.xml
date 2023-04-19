@@ -23,7 +23,7 @@
     <parent>
         <artifactId>arctic-ams</artifactId>
         <groupId>com.netease.arctic</groupId>
-        <version>0.4.1</version>
+        <version>0.4.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -112,45 +112,45 @@
         </profile>
     </profiles>
 
-    <build>
-        <finalName>arctic-ams-dashboard-${project.version}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>copy static</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <!-- copy files compiled here for packaging -->
-                            <outputDirectory>src/main/resources/static</outputDirectory>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <!-- specify the source file -->
-                                    <directory>${basedir}/dist</directory>
-                                    <includes>
-                                        <include>**/*</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+    <!--    <build>-->
+    <!--        <finalName>arctic-ams-dashboard-${project.version}</finalName>-->
+    <!--        <plugins>-->
+    <!--            <plugin>-->
+    <!--                <groupId>org.apache.maven.plugins</groupId>-->
+    <!--                <artifactId>maven-resources-plugin</artifactId>-->
+    <!--                <version>3.1.0</version>-->
+    <!--                <executions>-->
+    <!--                    <execution>-->
+    <!--                        <id>copy static</id>-->
+    <!--                        <phase>generate-resources</phase>-->
+    <!--                        <goals>-->
+    <!--                            <goal>copy-resources</goal>-->
+    <!--                        </goals>-->
+    <!--                        <configuration>-->
+    <!--                            &lt;!&ndash; copy files compiled here for packaging &ndash;&gt;-->
+    <!--                            <outputDirectory>src/main/resources/static</outputDirectory>-->
+    <!--                            <overwrite>true</overwrite>-->
+    <!--                            <resources>-->
+    <!--                                <resource>-->
+    <!--                                    &lt;!&ndash; specify the source file &ndash;&gt;-->
+    <!--                                    <directory>${basedir}/dist</directory>-->
+    <!--                                    <includes>-->
+    <!--                                        <include>**/*</include>-->
+    <!--                                    </includes>-->
+    <!--                                </resource>-->
+    <!--                            </resources>-->
+    <!--                        </configuration>-->
+    <!--                    </execution>-->
+    <!--                </executions>-->
+    <!--            </plugin>-->
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <!--            <plugin>-->
+    <!--                <groupId>org.apache.maven.plugins</groupId>-->
+    <!--                <artifactId>maven-deploy-plugin</artifactId>-->
+    <!--                <configuration>-->
+    <!--                    <skip>true</skip>-->
+    <!--                </configuration>-->
+    <!--            </plugin>-->
+    <!--        </plugins>-->
+    <!--    </build>-->
 </project>
