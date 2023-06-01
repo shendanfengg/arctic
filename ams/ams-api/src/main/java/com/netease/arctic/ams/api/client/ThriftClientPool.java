@@ -52,11 +52,11 @@ public class ThriftClientPool<T extends org.apache.thrift.TServiceClient> {
 
   private final PoolConfig poolConfig;
   // for thrift connects
-  private static final int retries = 5;
+  private static final int retries = 6;
 
-  private static final int retryInterval = 2000;
+  private static final int retryInterval = 10000;
 
-  private static final int maxMessageSize = 100 * 1024 * 1024;
+  private static final int maxMessageSize = 300 * 1024 * 1024;
 
   /**
    * Construct a new pool using default config
@@ -111,7 +111,7 @@ public class ThriftClientPool<T extends org.apache.thrift.TServiceClient> {
           LOG.warn("transport open fail service: host={}, port={}",
               serviceInfo.getHost(), serviceInfo.getPort());
           if (poolConfig.isFailover()) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < retries; i++) {
               try {
                 arcticThriftUrl = ArcticThriftUrl.parse(url);
                 serviceInfo.setHost(arcticThriftUrl.host());
