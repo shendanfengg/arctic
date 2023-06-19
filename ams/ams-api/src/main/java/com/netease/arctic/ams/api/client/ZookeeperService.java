@@ -22,7 +22,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.client.ZKClientConfig;
+  //import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.data.Stat;
 
 import java.nio.charset.StandardCharsets;
@@ -42,15 +42,15 @@ public class ZookeeperService {
   }
 
   private CuratorFramework newClient() {
-    ZKClientConfig zkClientConfig = new ZKClientConfig();
-    zkClientConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY, "false");
+  //    ZKClientConfig zkClientConfig = new ZKClientConfig();
+  //    zkClientConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY, "false");
     ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3, 5000);
     CuratorFramework client = CuratorFrameworkFactory.builder()
         .connectString(zkServerAddress)
         .sessionTimeoutMs(5000)
         .connectionTimeoutMs(5000)
         .retryPolicy(retryPolicy)
-        .zookeeperFactory(new ArcticZookeeperFactory(zkClientConfig))
+  //        .zookeeperFactory(new ArcticZookeeperFactory(zkClientConfig))
         .build();
     client.start();
     return client;
