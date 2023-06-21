@@ -52,7 +52,7 @@ public class ThriftClientPool<T extends org.apache.thrift.TServiceClient> {
 
   private final PoolConfig poolConfig;
   // for thrift connects
-  private static final int retries = 6;
+  private static final int retries = 10;
 
   private static final int retryInterval = 10000;
 
