@@ -58,6 +58,7 @@ import org.apache.iceberg.util.Tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -275,7 +276,12 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
       refreshAndListTables();
       TableOptimizeItem reloadTableOptimizeItem = optimizeTables.get(tableIdentifier);
       if (reloadTableOptimizeItem == null) {
-        throw new NoSuchObjectException("can't find table " + tableIdentifier);
+        if (unOptimizeTables.contains(tableIdentifier)) {
+          throw new NoSuchObjectException(tableIdentifier + " not in optimizing tables, maybe property " +
+                  "self-optimizing.enabled is false!");
+        } else {
+          throw new NoSuchObjectException("can't find table " + tableIdentifier);
+        }
       }
       return reloadTableOptimizeItem;
     }
@@ -679,5 +685,14 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
           getMapper(sqlSession, TableOptimizeRuntimeMapper.class);
       return tableOptimizeRuntimeMapper.selectTableOptimizeRuntimes();
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (tablesSvc != null) {
+      tablesSvc.shutdownNow();
+      tablesSvc = null;
+    }
+    checkTasks = null;
   }
 }

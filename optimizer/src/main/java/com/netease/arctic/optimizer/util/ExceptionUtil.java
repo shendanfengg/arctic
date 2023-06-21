@@ -16,16 +16,28 @@
  * limitations under the License.
  */
 
-package com.netease.arctic.ams.server.service;
+package com.netease.arctic.optimizer.util;
 
-import java.io.Closeable;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-/**
- * Service for cleaning orphan files periodically.
- */
-public interface IOrphanFilesCleanService extends Closeable {
-  /**
-   * Check orphan files clean tasks, add tasks of new tables, and clean tasks of removed table.
-   */
-  void checkOrphanFilesCleanTasks();
+public class ExceptionUtil {
+  public static final String EMPTY_ERROR_MESSAGE = "null";
+
+  public static String getErrorMessage(Throwable t, int maxLength) {
+    if (t == null) {
+      return EMPTY_ERROR_MESSAGE;
+    }
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    t.printStackTrace(pw);
+    String stackTrace = sw.toString();
+    if (stackTrace.length() > maxLength) {
+      return stackTrace.substring(0, maxLength);
+    } else if (stackTrace.length() == 0) {
+      return EMPTY_ERROR_MESSAGE;
+    } else {
+      return stackTrace;
+    }
+  }
 }
