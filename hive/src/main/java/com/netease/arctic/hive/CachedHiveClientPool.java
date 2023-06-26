@@ -79,7 +79,7 @@ public class CachedHiveClientPool implements HMSClientPool, Serializable {
       return tableMetaStore.doAs(() -> clientPool().run(action));
     } catch (RuntimeException e) {
       try {
-        LOG.error("Connect to hms failed and try to force retry.");
+        LOG.error("Connect to hms failed and try to force retry.", e);
         clientPool().close();
         clientPoolCache = null;
         init();
@@ -97,7 +97,7 @@ public class CachedHiveClientPool implements HMSClientPool, Serializable {
       return tableMetaStore.doAs(() -> clientPool().run(action, retry));
     } catch (RuntimeException e) {
       try {
-        LOG.error("Connect to hms failed and try to force retry.");
+        LOG.error("Connect to hms failed and try to force retry.", e);
         clientPool().close();
         clientPoolCache = null;
         init();
