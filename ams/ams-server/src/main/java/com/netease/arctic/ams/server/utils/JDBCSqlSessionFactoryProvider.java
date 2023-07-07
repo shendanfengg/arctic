@@ -76,10 +76,10 @@ public class JDBCSqlSessionFactoryProvider {
                 ArcticMetaStore.conf.getString(ArcticMetaStoreConf.MYBATIS_CONNECTION_DRIVER_CLASS_NAME));
           }
           dataSource.setDefaultAutoCommit(true);
-          dataSource.setMaxTotal(40);
+          dataSource.setMaxTotal(70);
           dataSource.setMaxIdle(16);
           dataSource.setMinIdle(0);
-          dataSource.setMaxWaitMillis(1000L);
+          dataSource.setMaxWaitMillis(5000L);
           dataSource.setLogAbandoned(true);
           dataSource.setRemoveAbandonedOnBorrow(true);
           dataSource.setRemoveAbandonedTimeout(60);

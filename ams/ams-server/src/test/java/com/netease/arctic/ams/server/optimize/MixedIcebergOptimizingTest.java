@@ -140,7 +140,7 @@ public class MixedIcebergOptimizingTest extends AbstractOptimizingTest {
     // Step1: insert base data
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < 100; i++) {
-      stringBuilder.append(RandomUtils.nextInt());
+      // stringBuilder.append(RandomUtils.nextInt());
     }
     String longString = stringBuilder.toString();
     List<DataFile> dataFiles = writeBase(table, Lists.newArrayList(
