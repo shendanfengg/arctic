@@ -264,11 +264,7 @@ public class BasicArcticCatalog implements ArcticCatalog {
     try {
       client.removeTable(meta.getTableIdentifier(), purge);
     } catch (TException e) {
-<<<<<<< HEAD
       throw new IllegalStateException("error when delete table metadata from metastore ", e);
-=======
-      throw new IllegalStateException("error when delete table metadata from metastore");
->>>>>>> 6a975849a7849ffc7fd64f482d555bc027ba0952
     }
 
     try {
