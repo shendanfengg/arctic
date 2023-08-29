@@ -21,7 +21,7 @@ package com.netease.arctic.ams.server.utils;
 import com.google.common.collect.Maps;
 import com.netease.arctic.TableTestBase;
 import com.netease.arctic.utils.SequenceNumberFetcher;
-  //import jline.internal.Log;
+import jline.internal.Log;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.iceberg.AppendFiles;
 import org.apache.iceberg.DataFile;
@@ -47,6 +47,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -73,7 +75,7 @@ public class SequenceNumberFetcherTest {
     tableProperties.put(TableProperties.FORMAT_VERSION, "2");
 
     String path = tempFolder.getRoot().getPath();
-  //    Log.info(path);
+    Log.info(path);
     Table table = hadoopTables.create(TableTestBase.TABLE_SCHEMA, PartitionSpec.unpartitioned(), tableProperties,
         path + "/test/table1");
     testTable(table);
@@ -86,7 +88,7 @@ public class SequenceNumberFetcherTest {
     tableProperties.put(TableProperties.FORMAT_VERSION, "2");
 
     String path = tempFolder.getRoot().getPath();
-  //    Log.info(path);
+    Log.info(path);
     Table table = hadoopTables.create(TableTestBase.TABLE_SCHEMA, TableTestBase.SPEC, tableProperties,
         path + "/test/table2");
     testTable(table);
@@ -99,7 +101,7 @@ public class SequenceNumberFetcherTest {
     tableProperties.put(TableProperties.FORMAT_VERSION, "1");
 
     String path = tempFolder.getRoot().getPath();
-  //    Log.info(path);
+    Log.info(path);
     Table table = hadoopTables.create(TableTestBase.TABLE_SCHEMA, TableTestBase.SPEC, tableProperties,
         path + "/test/table3");
     Map<String, Long> checkedDeletes = Maps.newHashMap();
