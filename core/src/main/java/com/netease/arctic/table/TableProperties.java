@@ -114,6 +114,11 @@ public class TableProperties {
   public static final String SELF_OPTIMIZING_FULL_TRIGGER_INTERVAL = "self-optimizing.full.trigger.interval";
   public static final long SELF_OPTIMIZING_FULL_TRIGGER_INTERVAL_DEFAULT = -1; // not trigger
 
+  public static final String SELF_OPTIMIZING_RETRY_MODE = "self-optimizing.retry.mode";
+  public static final String SELF_OPTIMIZING_RETRY_MODE_INCREASE = "increase";
+  public static final String SELF_OPTIMIZING_RETRY_MODE_STATIC = "static";
+  public static final String SELF_OPTIMIZING_RETRY_MODE_DEFAULT = SELF_OPTIMIZING_RETRY_MODE_INCREASE;
+
 
   /**
    * deprecated table optimize related properties

@@ -1366,7 +1366,14 @@ public class TableOptimizeItem extends IJDBCService {
   public boolean allowOptimizing() {
     if (!CompatiblePropertyUtil.propertyAsBoolean(getArcticTable().properties(), TableProperties.ENABLE_SELF_OPTIMIZING,
         TableProperties.ENABLE_SELF_OPTIMIZING_DEFAULT)) {
+      tableOptimizeRuntime.setRetry(0);
       return false;
+    }
+    if (CompatiblePropertyUtil.propertyAsString(getArcticTable().properties(),
+        TableProperties.SELF_OPTIMIZING_RETRY_MODE,
+        TableProperties.SELF_OPTIMIZING_RETRY_MODE_DEFAULT).equals(TableProperties.SELF_OPTIMIZING_RETRY_MODE_STATIC)) {
+      tableOptimizeRuntime.setRetry(0);
+      return true;
     }
     if (tableOptimizeRuntime.getRetry() <= 0) {
       return true;
