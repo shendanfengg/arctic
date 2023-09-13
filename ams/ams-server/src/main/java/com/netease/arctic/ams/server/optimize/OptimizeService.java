@@ -29,11 +29,13 @@ import com.netease.arctic.ams.api.OptimizeTaskId;
 import com.netease.arctic.ams.api.OptimizeTaskStat;
 import com.netease.arctic.ams.server.ArcticMetaStore;
 import com.netease.arctic.ams.server.config.ArcticMetaStoreConf;
+import com.netease.arctic.ams.server.mapper.OptimizeCommitFailedHistoryMapper;
 import com.netease.arctic.ams.server.mapper.OptimizeHistoryMapper;
 import com.netease.arctic.ams.server.mapper.OptimizeTaskRuntimesMapper;
 import com.netease.arctic.ams.server.mapper.OptimizeTasksMapper;
 import com.netease.arctic.ams.server.mapper.TableOptimizeRuntimeMapper;
 import com.netease.arctic.ams.server.model.BasicOptimizeTask;
+import com.netease.arctic.ams.server.model.OptimizeCommitFailedHistory;
 import com.netease.arctic.ams.server.model.OptimizeHistory;
 import com.netease.arctic.ams.server.model.OptimizeTaskRuntime;
 import com.netease.arctic.ams.server.model.TableMetadata;
@@ -689,6 +691,17 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
       TableOptimizeRuntimeMapper tableOptimizeRuntimeMapper =
           getMapper(sqlSession, TableOptimizeRuntimeMapper.class);
       return tableOptimizeRuntimeMapper.selectTableOptimizeRuntimes();
+    }
+  }
+
+  public void createOptimizeCommitFailedHistory(OptimizeCommitFailedHistory optimizeCommitFailedHistory) {
+    try (SqlSession sqlSession = getSqlSession(true)) {
+      OptimizeCommitFailedHistoryMapper optimizeCommitFailedHistoryMapper =
+          getMapper(sqlSession, OptimizeCommitFailedHistoryMapper.class);
+      optimizeCommitFailedHistoryMapper.insertOptimizeCommitFailedHistory(
+          optimizeCommitFailedHistory.getTableIdentifier(),
+          optimizeCommitFailedHistory.getFailReason(),
+          optimizeCommitFailedHistory.getFailTime());
     }
   }
 

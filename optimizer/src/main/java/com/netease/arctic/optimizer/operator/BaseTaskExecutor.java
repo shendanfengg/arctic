@@ -38,7 +38,7 @@ import com.netease.arctic.optimizer.operator.executor.ExecutorFactory;
 import com.netease.arctic.optimizer.operator.executor.NodeTask;
 import com.netease.arctic.optimizer.operator.executor.OptimizeTaskResult;
 import com.netease.arctic.optimizer.operator.executor.TableIdentificationInfo;
-import com.netease.arctic.optimizer.util.ExceptionUtil;
+import com.netease.arctic.utils.ExceptionUtil;
 import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.table.TableProperties;
 import com.netease.arctic.utils.SerializationUtils;

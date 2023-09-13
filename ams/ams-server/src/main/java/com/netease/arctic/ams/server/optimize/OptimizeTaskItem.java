@@ -361,6 +361,8 @@ public class OptimizeTaskItem extends IJDBCService {
     tableTaskHistory.setStartTime(optimizeRuntime.getExecuteTime());
     tableTaskHistory.setEndTime(optimizeRuntime.getReportTime());
     tableTaskHistory.setCostTime(optimizeRuntime.getCostTime());
+    tableTaskHistory.setFailReason(optimizeRuntime.getFailReason());
+    tableTaskHistory.setFailTime(optimizeRuntime.getFailTime());
 
     try (SqlSession sqlSession = getSqlSession(true)) {
       TaskHistoryMapper taskHistoryMapper = getMapper(sqlSession, TaskHistoryMapper.class);

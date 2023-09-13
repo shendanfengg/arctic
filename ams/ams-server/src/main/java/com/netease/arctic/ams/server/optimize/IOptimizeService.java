@@ -20,6 +20,7 @@ package com.netease.arctic.ams.server.optimize;
 
 import com.netease.arctic.ams.api.NoSuchObjectException;
 import com.netease.arctic.ams.api.OptimizeTaskStat;
+import com.netease.arctic.ams.server.model.OptimizeCommitFailedHistory;
 import com.netease.arctic.ams.server.model.OptimizeHistory;
 import com.netease.arctic.table.TableIdentifier;
 
@@ -132,4 +133,6 @@ public interface IOptimizeService extends Closeable {
    * @param tableIdentifier -
    */
   void stopOptimize(TableIdentifier tableIdentifier) throws NoSuchObjectException;
+
+  void createOptimizeCommitFailedHistory(OptimizeCommitFailedHistory optimizeCommitFailedHistory);
 }

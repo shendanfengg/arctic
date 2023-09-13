@@ -29,6 +29,8 @@ public class TableTaskHistory {
   private long endTime;
   private long costTime;
   private int queueId;
+  private String failReason;
+  private long failTime;
 
   public TableIdentifier getTableIdentifier() {
     return tableIdentifier;
@@ -92,6 +94,22 @@ public class TableTaskHistory {
 
   public void setQueueId(int queueId) {
     this.queueId = queueId;
+  }
+
+  public String getFailReason() {
+    return failReason;
+  }
+
+  public void setFailReason(String failReason) {
+    this.failReason = failReason;
+  }
+
+  public long getFailTime() {
+    return failTime;
+  }
+
+  public void setFailTime(long failTime) {
+    this.failTime = failTime;
   }
 
   @Override

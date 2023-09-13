@@ -19,10 +19,13 @@
 package com.netease.arctic.ams.server.optimize;
 
 import com.netease.arctic.ams.api.CommitMetaProducer;
+import com.netease.arctic.ams.api.ErrorMessage;
 import com.netease.arctic.ams.api.OptimizeType;
 import com.netease.arctic.ams.server.model.BasicOptimizeTask;
+import com.netease.arctic.ams.server.model.OptimizeCommitFailedHistory;
 import com.netease.arctic.ams.server.model.OptimizeTaskRuntime;
 import com.netease.arctic.ams.server.model.TableOptimizeRuntime;
+import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.ams.server.utils.UnKeyedTableUtil;
 import com.netease.arctic.data.DataTreeNode;
 import com.netease.arctic.data.file.FileNameGenerator;
@@ -33,6 +36,7 @@ import com.netease.arctic.table.TableProperties;
 import com.netease.arctic.table.UnkeyedTable;
 import com.netease.arctic.trace.SnapshotSummary;
 import com.netease.arctic.utils.ArcticDataFiles;
+import com.netease.arctic.utils.ExceptionUtil;
 import com.netease.arctic.utils.SerializationUtils;
 import com.netease.arctic.utils.TableFileUtils;
 import com.netease.arctic.utils.TablePropertyUtil;
@@ -152,6 +156,15 @@ public class BasicOptimizeCommit {
       } else {
         baseArcticTable = arcticTable.asUnkeyedTable();
       }
+      try {
+        String errorMessage = ExceptionUtil.getErrorMessage(e, 5000);
+        long failTime = System.currentTimeMillis();
+        ServiceContainer.getOptimizeService().createOptimizeCommitFailedHistory(
+            new OptimizeCommitFailedHistory(arcticTable.id(), errorMessage, failTime));
+      } catch (Throwable t) {
+        LOG.error("create optimize commit failed history failed", t);
+      }
+
       LOG.warn("Optimize commit table {} failed, give up commit and clear files in location.", arcticTable.id(), e);
       // only delete data files are produced by major optimize, because the major optimize maybe support hive
       // and produce redundant data files in hive location.(don't produce DeleteFile)

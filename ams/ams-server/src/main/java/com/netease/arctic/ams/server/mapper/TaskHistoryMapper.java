@@ -95,7 +95,9 @@ public interface TaskHistoryMapper {
       "typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}, " +
       "end_time = #{taskHistory.endTime, " +
       "typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}, " +
-      "cost_time = #{taskHistory.costTime} " +
+      "cost_time = #{taskHistory.costTime}, " +
+      "fail_reason = #{taskHistory.failReason}, " +
+      "fail_time = #{taskHistory.failTime}, " +
       "where " +
       "task_trace_id = #{taskHistory.taskTraceId} and retry = #{taskHistory.retry}")
   void updateTaskHistory(@Param("taskHistory") TableTaskHistory taskHistory);
