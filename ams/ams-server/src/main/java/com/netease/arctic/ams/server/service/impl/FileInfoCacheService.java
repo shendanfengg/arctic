@@ -174,8 +174,19 @@ public class FileInfoCacheService extends IJDBCService implements Closeable {
       SnapInfoCacheMapper snapInfoCacheMapper = getMapper(sqlSession, SnapInfoCacheMapper.class);
       List<TableMetadata> tableMetadata = ServiceContainer.getMetaService().listTables();
       tableMetadata.forEach(meta -> {
-        snapInfoCacheMapper.expireCache(time, meta.getTableIdentifier().buildTableIdentifier(), "base");
-        snapInfoCacheMapper.expireCache(time, meta.getTableIdentifier().buildTableIdentifier(), "change");
+        LOG.info("start expire file info cache of table {}", meta.getTableIdentifier());
+        int baseExpireCount = snapInfoCacheMapper.countExpiredCache(time,
+            meta.getTableIdentifier().buildTableIdentifier(), "base");
+        if (baseExpireCount > 30) {
+          snapInfoCacheMapper.expireCache(time, meta.getTableIdentifier().buildTableIdentifier(), "base",
+              baseExpireCount - 30);
+        }
+        int changeExpireCount = snapInfoCacheMapper.countExpiredCache(time,
+            meta.getTableIdentifier().buildTableIdentifier(), "change");
+        if (changeExpireCount > 30) {
+          snapInfoCacheMapper.expireCache(time, meta.getTableIdentifier().buildTableIdentifier(), "change",
+              changeExpireCount - 30);
+        }
       });
     }
   }

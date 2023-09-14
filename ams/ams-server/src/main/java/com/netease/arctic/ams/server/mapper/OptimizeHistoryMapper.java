@@ -150,7 +150,16 @@ public interface OptimizeHistoryMapper {
   @Delete("delete from " + TABLE_NAME + " where " +
       "catalog_name = #{tableIdentifier.catalog} and db_name = #{tableIdentifier.database} " +
       "and table_name = #{tableIdentifier.tableName} " +
-      "and commit_time < #{expireTime, typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}")
+      "and commit_time < #{expireTime, typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor} " +
+      "order by commit_time asc limit #{expireCount}")
   void expireOptimizeHistory(@Param("tableIdentifier") TableIdentifier tableIdentifier,
-                             @Param("expireTime") long expireTime);
+                             @Param("expireTime") long expireTime,
+                             @Param("expireCount") int expireCount);
+
+  @Select("select count(*) from " + TABLE_NAME + " where " +
+      "catalog_name = #{tableIdentifier.catalog} and db_name = #{tableIdentifier.database} " +
+      "and table_name = #{tableIdentifier.tableName} " +
+      "and commit_time < #{expireTime, typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}")
+  int selectOptimizeHistoryCount(@Param("tableIdentifier") TableIdentifier tableIdentifier,
+                                 @Param("expireTime") long expireTime);
 }

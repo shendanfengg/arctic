@@ -649,7 +649,10 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
     try (SqlSession sqlSession = getSqlSession(true)) {
       OptimizeHistoryMapper optimizeHistoryMapper =
           getMapper(sqlSession, OptimizeHistoryMapper.class);
-      optimizeHistoryMapper.expireOptimizeHistory(tableIdentifier, expireTime);
+      int expireCount = optimizeHistoryMapper.selectOptimizeHistoryCount(tableIdentifier, expireTime);
+      if (expireCount > 30) {
+        optimizeHistoryMapper.expireOptimizeHistory(tableIdentifier, expireTime, expireCount - 30);
+      }
     }
   }
 

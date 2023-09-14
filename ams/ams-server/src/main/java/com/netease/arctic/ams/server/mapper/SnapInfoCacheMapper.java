@@ -57,8 +57,19 @@ public interface SnapInfoCacheMapper {
       ".server.mybatis.Long2TsConvertor} and table_identifier=#{tableIdentifier, typeHandler=com.netease.arctic.ams" +
       ".server.mybatis.TableIdentifier2StringConverter} and inner_table = #{type} and snapshot_id not in (select " +
       "add_snapshot_id from file_info_cache where delete_snapshot_id is null and table_identifier=#{tableIdentifier, " +
-      "typeHandler=com.netease.arctic.ams.server.mybatis.TableIdentifier2StringConverter} and inner_table = #{type})")
+      "typeHandler=com.netease.arctic.ams.server.mybatis.TableIdentifier2StringConverter} and inner_table = #{type}) " +
+      "order by commit_time asc limit #{expireCount}")
   void expireCache(
+      @Param("expiredTime") long expiredTime, @Param("tableIdentifier") TableIdentifier tableIdentifier,
+      @Param("type") String tableType, @Param("expireCount") int expireCount);
+
+  @Select("select count(*) from " + TABLE_NAME +
+      " where commit_time < #{expiredTime, typeHandler=com.netease.arctic.ams" +
+      ".server.mybatis.Long2TsConvertor} and table_identifier=#{tableIdentifier, typeHandler=com.netease.arctic.ams" +
+      ".server.mybatis.TableIdentifier2StringConverter} and inner_table = #{type} and snapshot_id not in (select " +
+      "add_snapshot_id from file_info_cache where delete_snapshot_id is null and table_identifier=#{tableIdentifier, " +
+      "typeHandler=com.netease.arctic.ams.server.mybatis.TableIdentifier2StringConverter} and inner_table = #{type})")
+  int countExpiredCache(
       @Param("expiredTime") long expiredTime, @Param("tableIdentifier") TableIdentifier tableIdentifier,
       @Param("type") String tableType);
 
