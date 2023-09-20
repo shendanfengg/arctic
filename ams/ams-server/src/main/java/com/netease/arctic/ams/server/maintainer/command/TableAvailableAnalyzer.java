@@ -19,6 +19,7 @@
 package com.netease.arctic.ams.server.maintainer.command;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.netease.arctic.ams.server.maintainer.RepairUtil;
 import com.netease.arctic.catalog.ArcticCatalog;
 import com.netease.arctic.catalog.CatalogManager;
@@ -43,6 +44,9 @@ import org.apache.thrift.TException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +163,9 @@ public class TableAvailableAnalyzer {
 
     //find can roll back snapshot
     Iterable<Snapshot> remainSnapshot = Iterables.filter(table.snapshots(), s -> !s.equals(currentSnapshot));
-    Iterable<Snapshot> maxFindSnapshot = Iterables.limit(remainSnapshot, maxFindSnapshotNum);
+    List<Snapshot> maxFindSnapshot = Arrays.asList(Iterables.toArray(remainSnapshot, Snapshot.class));
+    Collections.reverse(maxFindSnapshot);
+    maxFindSnapshot = maxFindSnapshot.subList(0, Math.min(maxFindSnapshot.size(), maxFindSnapshotNum));
     Iterable<Snapshot> okSnapshot = Iterables.filter(maxFindSnapshot, s -> checkSnapshot(table, s).isOk());
     Iterable<Snapshot> finalOkSnapshot = Iterables.limit(okSnapshot, maxRollbackSnapNum);
     List<Snapshot> rollbackSnapshot = new ArrayList<>();
