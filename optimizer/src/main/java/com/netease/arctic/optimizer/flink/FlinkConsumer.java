@@ -51,7 +51,7 @@ public class FlinkConsumer extends RichParallelSourceFunction<TaskWrapper> {
   public void run(SourceContext<TaskWrapper> sourceContext) throws Exception {
     while (running) {
       try {
-        TaskWrapper task = taskConsumer.pollTask(0);
+        TaskWrapper task = taskConsumer.pollTask(0, getRuntimeContext().getTaskNameWithSubtasks());
         if (task != null) {
           sourceContext.collect(task);
         } else {

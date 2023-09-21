@@ -32,6 +32,8 @@ public class TableTaskHistory {
   private String failReason;
   private long failTime;
 
+  private String container;
+
   public TableIdentifier getTableIdentifier() {
     return tableIdentifier;
   }
@@ -110,6 +112,14 @@ public class TableTaskHistory {
 
   public void setFailTime(long failTime) {
     this.failTime = failTime;
+  }
+
+  public String getContainer() {
+    return container;
+  }
+
+  public void setContainer(String container) {
+    this.container = container;
   }
 
   @Override

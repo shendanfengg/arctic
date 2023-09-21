@@ -76,6 +76,7 @@ public interface OptimizeTaskRuntimesMapper {
       " job_type = #{optimizeTaskRuntime.jobId.type, jdbcType=VARCHAR}," +
       " job_id = #{optimizeTaskRuntime.jobId.id, jdbcType=VARCHAR}," +
       " attempt_id = #{optimizeTaskRuntime.attemptId, jdbcType=VARCHAR}," +
+      " container = #{optimizeTaskRuntime.container, jdbcType=VARCHAR}," +
       " retry = #{optimizeTaskRuntime.retry}," +
       " fail_reason = #{optimizeTaskRuntime.failReason, jdbcType=VARCHAR}," +
       " fail_time = #{optimizeTaskRuntime.failTime, " +

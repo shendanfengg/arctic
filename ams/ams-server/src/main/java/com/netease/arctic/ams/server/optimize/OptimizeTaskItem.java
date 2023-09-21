@@ -106,7 +106,7 @@ public class OptimizeTaskItem extends IJDBCService {
     }
   }
 
-  public TableTaskHistory onExecuting(JobId jobId, String attemptId) {
+  public TableTaskHistory onExecuting(JobId jobId, String attemptId, String container) {
     lock.lock();
     try {
       Preconditions.checkArgument(optimizeRuntime.getStatus() != OptimizeStatus.Prepared,
@@ -120,6 +120,7 @@ public class OptimizeTaskItem extends IJDBCService {
       newRuntime.setPreparedTime(OptimizeTaskRuntime.INVALID_TIME);
       newRuntime.setCostTime(0);
       newRuntime.setErrorMessage(null);
+      newRuntime.setContainer(container);
       persistTaskRuntime(newRuntime, false);
       optimizeRuntime = newRuntime;
       return constructNewTableTaskHistory(currentTime);
@@ -346,6 +347,7 @@ public class OptimizeTaskItem extends IJDBCService {
     tableTaskHistory.setRetry(optimizeRuntime.getRetry());
     tableTaskHistory.setStartTime(currentTime);
     tableTaskHistory.setQueueId(optimizeTask.getQueueId());
+    tableTaskHistory.setContainer(optimizeRuntime.getContainer());
 
     return tableTaskHistory;
   }

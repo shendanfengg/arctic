@@ -40,6 +40,8 @@ public class OptimizeTaskRuntime implements Cloneable {
   private JobId jobId;
   private String attemptId;
 
+  private String container;
+
   private int retry = 0;
   private ErrorMessage errorMessage = null;
 
@@ -164,6 +166,14 @@ public class OptimizeTaskRuntime implements Cloneable {
 
   public void setAttemptId(String attemptId) {
     this.attemptId = attemptId;
+  }
+
+  public String getContainer() {
+    return container;
+  }
+
+  public void setContainer(String container) {
+    this.container = container;
   }
 
   public long getCostTime() {
