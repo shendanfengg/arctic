@@ -18,7 +18,9 @@
 
 package com.netease.arctic.ams.server.service.impl;
 
+import com.netease.arctic.ams.server.mapper.TableOptimizeRuntimeMapper;
 import com.netease.arctic.ams.server.mapper.TaskHistoryMapper;
+import com.netease.arctic.ams.server.model.TableOptimizeRuntime;
 import com.netease.arctic.ams.server.model.TableTaskHistory;
 import com.netease.arctic.ams.server.service.IJDBCService;
 import com.netease.arctic.ams.server.service.ITableTaskHistoryService;
@@ -99,6 +101,15 @@ public class TableTaskHistoryService extends IJDBCService implements ITableTaskH
           getMapper(sqlSession, TaskHistoryMapper.class);
 
       taskHistoryMapper.expireTaskHistory(identifier, latestTaskHistoryId, expireTime);
+    }
+  }
+
+  @Override
+  public TableOptimizeRuntime selectTableOptimizeRuntime(TableIdentifier tableIdentifier) {
+    try (SqlSession sqlSession = getSqlSession(true)) {
+      TableOptimizeRuntimeMapper tableOptimizeRuntimeMapper =
+          getMapper(sqlSession, TableOptimizeRuntimeMapper.class);
+      return tableOptimizeRuntimeMapper.selectTableOptimizeRuntime(tableIdentifier);
     }
   }
 

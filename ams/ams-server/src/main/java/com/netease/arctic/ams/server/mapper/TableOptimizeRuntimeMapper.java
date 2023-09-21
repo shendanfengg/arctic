@@ -62,6 +62,29 @@ public interface TableOptimizeRuntimeMapper {
   })
   List<TableOptimizeRuntime> selectTableOptimizeRuntimes();
 
+  @Select("select catalog_name, db_name, table_name, current_snapshot_id, current_change_snapshotId," +
+      " latest_major_optimize_time, latest_full_optimize_time, latest_minor_optimize_time, latest_task_plan_group," +
+      " optimize_status, optimize_status_start_time " +
+      " from " + TABLE_NAME + " where " +
+      "catalog_name = #{tableIdentifier.catalog} and " +
+      "db_name = #{tableIdentifier.database} and " +
+      "table_name = #{tableIdentifier.tableName}")
+  @Results({
+      @Result(property = "currentSnapshotId", column = "current_snapshot_id"),
+      @Result(property = "currentChangeSnapshotId", column = "current_change_snapshotId"),
+      @Result(property = "latestMajorOptimizeTime", column = "latest_major_optimize_time",
+          typeHandler = MapLong2StringConverter.class),
+      @Result(property = "latestFullOptimizeTime", column = "latest_full_optimize_time",
+          typeHandler = MapLong2StringConverter.class),
+      @Result(property = "latestMinorOptimizeTime", column = "latest_minor_optimize_time",
+          typeHandler = MapLong2StringConverter.class),
+      @Result(property = "latestTaskPlanGroup", column = "latest_task_plan_group"),
+      @Result(property = "optimizeStatus", column = "optimize_status"),
+      @Result(property = "optimizeStatusStartTime", column = "optimize_status_start_time",
+          typeHandler = Long2TsConvertor.class)
+  })
+  TableOptimizeRuntime selectTableOptimizeRuntime(@Param("tableIdentifier") TableIdentifier tableIdentifier);
+
   @Update("update " + TABLE_NAME + " set " +
       "current_snapshot_id = #{runtime.currentSnapshotId}, " +
       "current_change_snapshotId = #{runtime.currentChangeSnapshotId}, " +

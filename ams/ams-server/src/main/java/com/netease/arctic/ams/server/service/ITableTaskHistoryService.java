@@ -18,6 +18,7 @@
 
 package com.netease.arctic.ams.server.service;
 
+import com.netease.arctic.ams.server.model.TableOptimizeRuntime;
 import com.netease.arctic.ams.server.model.TableTaskHistory;
 import com.netease.arctic.table.TableIdentifier;
 
@@ -38,4 +39,6 @@ public interface ITableTaskHistoryService extends Closeable {
   void deleteTaskHistoryWithPlanGroup(TableIdentifier identifier, String taskPlanGroup);
 
   void expireTaskHistory(TableIdentifier identifier, String latestTaskHistoryId, long expireTime);
+
+  TableOptimizeRuntime selectTableOptimizeRuntime(TableIdentifier identifier);
 }

@@ -19,8 +19,7 @@
 package com.netease.arctic.ams.server.service.impl;
 
 import com.netease.arctic.ams.api.DataFileInfo;
-import com.netease.arctic.ams.api.NoSuchObjectException;
-import com.netease.arctic.ams.server.optimize.TableOptimizeItem;
+import com.netease.arctic.ams.server.model.TableOptimizeRuntime;
 import com.netease.arctic.ams.server.service.ITableExpireService;
 import com.netease.arctic.ams.server.service.ServiceContainer;
 import com.netease.arctic.ams.server.utils.CatalogUtil;
@@ -226,20 +225,19 @@ public class TableExpireService implements ITableExpireService {
    * @return commit time of snapshot for optimizing
    */
   public static long fetchOptimizingSnapshotTime(UnkeyedTable table) {
-    try {
-      TableOptimizeItem tableOptimizeItem = ServiceContainer.getOptimizeService().getTableOptimizeItem(table.id());
-      if (!tableOptimizeItem.getOptimizeTasks().isEmpty()) {
-        long currentSnapshotId = tableOptimizeItem.getTableOptimizeRuntime().getCurrentSnapshotId();
-        for (Snapshot snapshot : table.snapshots()) {
-          if (snapshot.snapshotId() == currentSnapshotId) {
-            return snapshot.timestampMillis();
-          }
+    TableOptimizeRuntime tableOptimizeRuntime = ServiceContainer.getTableTaskHistoryService()
+        .selectTableOptimizeRuntime(table.id());
+    if (tableOptimizeRuntime != null &&
+        tableOptimizeRuntime.getCurrentSnapshotId() != -1 &&
+        tableOptimizeRuntime.getCurrentSnapshotId() != 0) {
+      long currentSnapshotId = tableOptimizeRuntime.getCurrentSnapshotId();
+      for (Snapshot snapshot : table.snapshots()) {
+        if (snapshot.snapshotId() == currentSnapshotId) {
+          return snapshot.timestampMillis();
         }
       }
-      return Long.MAX_VALUE;
-    } catch (NoSuchObjectException e) {
-      return Long.MAX_VALUE;
     }
+    return Long.MAX_VALUE;
   }
 
   public static long min(long a, long b, long c) {

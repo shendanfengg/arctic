@@ -19,7 +19,6 @@
 package com.netease.arctic.ams.server.optimize;
 
 import com.netease.arctic.ams.api.CommitMetaProducer;
-import com.netease.arctic.ams.api.ErrorMessage;
 import com.netease.arctic.ams.api.OptimizeType;
 import com.netease.arctic.ams.server.model.BasicOptimizeTask;
 import com.netease.arctic.ams.server.model.OptimizeCommitFailedHistory;
