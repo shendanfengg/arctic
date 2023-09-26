@@ -348,7 +348,8 @@ public class OptimizeTaskItem extends IJDBCService {
     tableTaskHistory.setStartTime(currentTime);
     tableTaskHistory.setQueueId(optimizeTask.getQueueId());
     tableTaskHistory.setContainer(optimizeRuntime.getContainer());
-
+    tableTaskHistory.setOptimizeType(optimizeTask.getTaskId().getType());
+    tableTaskHistory.setPartition(optimizeTask.getPartition());
     return tableTaskHistory;
   }
 

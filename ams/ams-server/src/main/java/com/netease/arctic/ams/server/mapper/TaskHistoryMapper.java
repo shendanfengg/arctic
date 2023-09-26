@@ -75,7 +75,7 @@ public interface TaskHistoryMapper {
   List<TableTaskHistory> selectTaskHistoryByTraceId(@Param("taskTraceId") String taskTraceId);
 
   @Insert("insert into " + TABLE_NAME + "(task_trace_id, retry, catalog_name, db_name, table_name, " +
-      "task_plan_group, start_time, end_time, cost_time, queue_id, container) values ( " +
+      "task_plan_group, start_time, end_time, cost_time, queue_id, container, optimize_type, partition) values ( " +
       "#{taskHistory.taskTraceId}, " +
       "#{taskHistory.retry}, " +
       "#{taskHistory.tableIdentifier.catalog}, " +
@@ -88,7 +88,9 @@ public interface TaskHistoryMapper {
       "typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}," +
       "#{taskHistory.costTime}, " +
       "#{taskHistory.queueId}, " +
-      "#{taskHistory.container}) ")
+      "#{taskHistory.container}, " +
+      "#{taskHistory.optimizeType}, " +
+      "#{taskHistory.partition})")
   void insertTaskHistory(@Param("taskHistory") TableTaskHistory taskHistory);
 
   @Update("update " + TABLE_NAME + " set " +
@@ -98,7 +100,7 @@ public interface TaskHistoryMapper {
       "typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor}, " +
       "cost_time = #{taskHistory.costTime}, " +
       "fail_reason = #{taskHistory.failReason}, " +
-      "fail_time = #{taskHistory.failTime} " +
+      "fail_time = #{taskHistory.failTime, typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor} " +
       "where " +
       "task_trace_id = #{taskHistory.taskTraceId} and retry = #{taskHistory.retry}")
   void updateTaskHistory(@Param("taskHistory") TableTaskHistory taskHistory);

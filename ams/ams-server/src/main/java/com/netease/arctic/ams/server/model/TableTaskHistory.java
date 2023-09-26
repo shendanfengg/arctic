@@ -18,6 +18,7 @@
 
 package com.netease.arctic.ams.server.model;
 
+import com.netease.arctic.ams.api.OptimizeType;
 import com.netease.arctic.table.TableIdentifier;
 
 public class TableTaskHistory {
@@ -31,6 +32,8 @@ public class TableTaskHistory {
   private int queueId;
   private String failReason;
   private long failTime;
+  private OptimizeType optimizeType;
+  private String partition;
 
   private String container;
 
@@ -112,6 +115,22 @@ public class TableTaskHistory {
 
   public void setFailTime(long failTime) {
     this.failTime = failTime;
+  }
+
+  public OptimizeType getOptimizeType() {
+    return optimizeType;
+  }
+
+  public void setOptimizeType(OptimizeType optimizeType) {
+    this.optimizeType = optimizeType;
+  }
+
+  public String getPartition() {
+    return partition;
+  }
+
+  public void setPartition(String partition) {
+    this.partition = partition;
   }
 
   public String getContainer() {

@@ -55,6 +55,7 @@ import org.apache.iceberg.util.StructLikeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,6 +71,8 @@ public class BasicOptimizeCommit {
   protected final ArcticTable arcticTable;
   protected final Map<String, List<OptimizeTaskItem>> optimizeTasksToCommit;
   protected final Map<String, OptimizeType> partitionOptimizeType = new HashMap<>();
+
+  private static final String UNKNOWN_STATE = "Unknown";
 
   public BasicOptimizeCommit(ArcticTable arcticTable,
                              Map<String, List<OptimizeTaskItem>> optimizeTasksToCommit) {
@@ -156,10 +159,22 @@ public class BasicOptimizeCommit {
         baseArcticTable = arcticTable.asUnkeyedTable();
       }
       try {
-        String errorMessage = ExceptionUtil.getErrorMessage(e, 5000);
+        List<List<OptimizeTaskItem>> optimizeTaskItems = new ArrayList<>(optimizeTasksToCommit.values());
+        String optimizeType;
+        String planGroup;
+        if (optimizeTaskItems.get(0).isEmpty()) {
+          optimizeType = UNKNOWN_STATE;
+          planGroup = UNKNOWN_STATE;
+        } else {
+          optimizeType = optimizeTaskItems.get(0).get(0).getTaskId().getType().toString();
+          planGroup = optimizeTaskItems.get(0).get(0).getOptimizeTask().getTaskPlanGroup();
+        }
+
+        String errorMessage = ExceptionUtil.getErrorMessage(e, 10000);
         long failTime = System.currentTimeMillis();
         ServiceContainer.getOptimizeService().createOptimizeCommitFailedHistory(
-            new OptimizeCommitFailedHistory(arcticTable.id(), errorMessage, failTime));
+            new OptimizeCommitFailedHistory(arcticTable.id(), errorMessage, failTime,
+                optimizeTasksToCommit.entrySet().toString(), optimizeType, planGroup));
       } catch (Throwable t) {
         LOG.error("create optimize commit failed history failed", t);
       }

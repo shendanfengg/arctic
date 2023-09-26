@@ -701,10 +701,7 @@ public class OptimizeService extends IJDBCService implements IOptimizeService {
     try (SqlSession sqlSession = getSqlSession(true)) {
       OptimizeCommitFailedHistoryMapper optimizeCommitFailedHistoryMapper =
           getMapper(sqlSession, OptimizeCommitFailedHistoryMapper.class);
-      optimizeCommitFailedHistoryMapper.insertOptimizeCommitFailedHistory(
-          optimizeCommitFailedHistory.getTableIdentifier(),
-          optimizeCommitFailedHistory.getFailReason(),
-          optimizeCommitFailedHistory.getFailTime());
+      optimizeCommitFailedHistoryMapper.insertOptimizeCommitFailedHistory(optimizeCommitFailedHistory);
     }
   }
 

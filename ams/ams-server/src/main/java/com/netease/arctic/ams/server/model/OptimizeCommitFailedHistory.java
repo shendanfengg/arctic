@@ -7,18 +7,23 @@ import com.netease.arctic.table.TableIdentifier;
  */
 public class OptimizeCommitFailedHistory {
   private TableIdentifier tableIdentifier;
-
   private String failReason;
-
   private long failTime;
+  private String partition;
+  private String optimizeType;
+  private String planGroup;
 
   public OptimizeCommitFailedHistory() {
   }
 
-  public OptimizeCommitFailedHistory(TableIdentifier tableIdentifier, String failReason, long failTime) {
+  public OptimizeCommitFailedHistory(TableIdentifier tableIdentifier, String failReason, long failTime,
+                                     String partition, String optimizeType, String planGroup) {
     this.tableIdentifier = tableIdentifier;
     this.failReason = failReason;
     this.failTime = failTime;
+    this.partition = partition;
+    this.optimizeType = optimizeType;
+    this.planGroup = planGroup;
   }
 
   public TableIdentifier getTableIdentifier() {
@@ -43,6 +48,30 @@ public class OptimizeCommitFailedHistory {
 
   public void setFailTime(long failTime) {
     this.failTime = failTime;
+  }
+
+  public String getPartition() {
+    return partition;
+  }
+
+  public void setPartition(String partition) {
+    this.partition = partition;
+  }
+
+  public String getOptimizeType() {
+    return optimizeType;
+  }
+
+  public void setOptimizeType(String optimizeType) {
+    this.optimizeType = optimizeType;
+  }
+
+  public String getPlanGroup() {
+    return planGroup;
+  }
+
+  public void setPlanGroup(String planGroup) {
+    this.planGroup = planGroup;
   }
 
   @Override

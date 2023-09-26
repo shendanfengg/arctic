@@ -1,8 +1,7 @@
 package com.netease.arctic.ams.server.mapper;
 
-import com.netease.arctic.table.TableIdentifier;
+import com.netease.arctic.ams.server.model.OptimizeCommitFailedHistory;
 import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Param;
 
 /**
  * Created by shendanfeng on 2023/9/13.
@@ -10,10 +9,16 @@ import org.apache.ibatis.annotations.Param;
 public interface OptimizeCommitFailedHistoryMapper {
   String TABLE_NAME = "optimize_commit_failed_history";
 
-  @Insert("insert into " + TABLE_NAME + " (catalog_name, db_name, table_name, fail_reason, fail_time) values(" +
-      " #{tableIdentifier.catalog}, #{tableIdentifier.database}, #{tableIdentifier.tableName}, #{failReason}, " +
-      "#{failTime})")
-  public void insertOptimizeCommitFailedHistory(@Param("tableIdentifier") TableIdentifier tableIdentifier,
-                                                @Param("failReason") String failReason,
-                                                @Param("failTime") long failTime);
+
+  @Insert("insert into " + TABLE_NAME + "(catalog_name, db_name, table_name, partition, optimize_type, " +
+      "plan_group, fail_reason, fail_time) values (" +
+      "#{optimizeCommitFailedHistory.tableIdentifier.catalog}, " +
+      "#{optimizeCommitFailedHistory.tableIdentifier.database}, " +
+      "#{optimizeCommitFailedHistory.tableIdentifier.tableName}, " +
+      "#{optimizeCommitFailedHistory.partition}, " +
+      "#{optimizeCommitFailedHistory.optimizeType}, " +
+      "#{optimizeCommitFailedHistory.planGroup}, " +
+      "#{optimizeCommitFailedHistory.failReason}, " +
+      "#{optimizeCommitFailedHistory.failTime, typeHandler=com.netease.arctic.ams.server.mybatis.Long2TsConvertor})")
+  public void insertOptimizeCommitFailedHistory(OptimizeCommitFailedHistory optimizeCommitFailedHistory);
 }
