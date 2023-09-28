@@ -731,6 +731,40 @@ public class OptimizeQueueService extends IJDBCService implements Closeable {
       for (TableIdentifier tableIdentifier : tableSort) {
         try {
           TableOptimizeItem tableItem = ServiceContainer.getOptimizeService().getTableOptimizeItem(tableIdentifier);
+
+          if (tableItem.optimizeRunning()) {
+            LOG.debug("{} is running continue", tableIdentifier);
+
+            ArcticTable arcticTable = tableItem.getArcticTable(true);
+
+            Map<String, String> properties = arcticTable.properties();
+            int queueId = ServiceContainer.getOptimizeQueueService().getQueueId(properties);
+
+            // queue was updated
+            if (optimizeQueue.getOptimizeQueueMeta().getQueueId() != queueId) {
+              releaseTable(tableIdentifier);
+              ServiceContainer.getOptimizeQueueService().getQueue(queueId).bindTable(tableIdentifier);
+              continue;
+            }
+
+            tableItem.checkTaskExecuteTimeout();
+            // if enable_optimize is false
+            if (!tableItem.allowOptimizing()) {
+              LOG.debug("{} is not enable optimize or retry too frequently continue", tableIdentifier);
+              continue;
+            }
+
+            // add failed tasks and retry
+            List<OptimizeTaskItem> toExecuteTasks = addTask(tableItem, Collections.emptyList());
+            if (!toExecuteTasks.isEmpty()) {
+              LOG.info("{} add {} failed tasks into queue and retry",
+                  tableItem.getTableIdentifier(), toExecuteTasks.size());
+              return toExecuteTasks;
+            } else {
+              continue;
+            }
+          }
+
           if (tableItem.getTableOptimizeRuntime().getOptimizeStatus() != TableOptimizeRuntime.OptimizeStatus.Pending) {
             // only table in pending should plan
             continue;
@@ -752,20 +786,6 @@ public class OptimizeQueueService extends IJDBCService implements Closeable {
           if (!tableItem.allowOptimizing()) {
             LOG.debug("{} is not enable optimize or retry too frequently continue", tableIdentifier);
             continue;
-          }
-
-          if (tableItem.optimizeRunning()) {
-            LOG.debug("{} is running continue", tableIdentifier);
-
-            // add failed tasks and retry
-            List<OptimizeTaskItem> toExecuteTasks = addTask(tableItem, Collections.emptyList());
-            if (!toExecuteTasks.isEmpty()) {
-              LOG.info("{} add {} failed tasks into queue and retry",
-                  tableItem.getTableIdentifier(), toExecuteTasks.size());
-              return toExecuteTasks;
-            } else {
-              continue;
-            }
           }
 
           OptimizePlanResult optimizePlanResult = OptimizePlanResult.EMPTY;
