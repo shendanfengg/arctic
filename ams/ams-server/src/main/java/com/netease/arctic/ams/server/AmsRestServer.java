@@ -305,6 +305,7 @@ public class AmsRestServer {
   private static final String[] urlWhiteList = {
     "/ams/v1/versionInfo",
     "/ams/v1/login",
+    "/ams/v1/health/status",
     "/",
     "/overview",
     "/introduce",
