@@ -81,8 +81,14 @@ public class HiveMetaSynchronizer {
    * @param hiveClient hive client
    */
   public static void syncHiveSchemaToArctic(ArcticTable table, HMSClientPool hiveClient) {
+    Table hiveTable;
     try {
-      Table hiveTable = hiveClient.run(client -> client.getTable(table.id().getDatabase(), table.id().getTableName()));
+      hiveTable = hiveClient.run(client -> client.getTable(table.id().getDatabase(), table.id().getTableName()));
+    } catch (Throwable t) {
+      LOG.error("Table {} not found in hive try to skip sync hive schema", table.id());
+      return;
+    }
+    try {
       Schema hiveSchema = HiveSchemaUtil.convertHiveSchemaToIcebergSchema(hiveTable, table.isKeyedTable() ?
           table.asKeyedTable().primaryKeySpec().fieldNames() : new ArrayList<>());
       UpdateSchema updateSchema = table.updateSchema();
@@ -91,8 +97,9 @@ public class HiveMetaSynchronizer {
       if (update) {
         updateSchema.commit();
       }
-    } catch (TException | InterruptedException e) {
-      throw new RuntimeException("Failed to get hive table:" + table.id(), e);
+    } catch (Throwable t) {
+      LOG.error("Fail to sync hive schema to arctic table {}", table.id(), t);
+      throw t;
     }
   }
 

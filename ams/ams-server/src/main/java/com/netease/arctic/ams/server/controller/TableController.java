@@ -457,10 +457,8 @@ public class TableController extends RestBaseController {
       }
       for (TableIdentifier tableIdentifier : tableIdentifiers) {
         TableMeta tableMeta = new TableMeta(tableIdentifier.getTableName(), TableMeta.TableType.ARCTIC.toString());
-        if (tempTables.contains(tableMeta)) {
-          tables.add(tableMeta);
-          tempTables.remove(tableMeta);
-        }
+        tables.add(tableMeta);
+        tempTables.remove(tableMeta);
       }
       tables.addAll(tempTables);
     } else {
