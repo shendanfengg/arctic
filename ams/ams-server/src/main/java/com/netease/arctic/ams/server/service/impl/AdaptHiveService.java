@@ -59,6 +59,8 @@ public class AdaptHiveService implements Closeable {
         UpgradeHiveTableUtil.upgradeHiveTable(arcticHiveCatalog, tableIdentifier,
             pkList, upgradeHiveMeta.getProperties());
         runningInfoCache.get(tableIdentifier).setStatus(UpgradeStatus.SUCCESS.toString());
+        Thread.sleep(10 * 6 * 1000);
+        runningInfoCache.remove(tableIdentifier);
       } catch (Throwable t) {
         LOG.error("Failed to upgrade hive table to arctic ", t);
         runningInfoCache.get(tableIdentifier).setErrorMessage(AmsUtils.getStackTrace(t));
