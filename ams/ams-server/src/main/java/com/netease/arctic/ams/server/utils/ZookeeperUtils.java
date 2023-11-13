@@ -37,8 +37,8 @@ public class ZookeeperUtils {
     ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3, 5000);
     this.zkClient = CuratorFrameworkFactory.builder()
         .connectString(zkServerAddress)
-        .sessionTimeoutMs(5000)
-        .connectionTimeoutMs(5000)
+        .sessionTimeoutMs(30000)
+        .connectionTimeoutMs(30000)
         .retryPolicy(retryPolicy)
         .build();
     zkClient.start();
