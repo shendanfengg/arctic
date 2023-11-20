@@ -243,21 +243,20 @@ public abstract class UpdateHiveFiles<T extends SnapshotUpdate<T>> implements Sn
   }
 
   private void checkPartitionDelete(Set<Path> deleteFiles, Partition partition) {
-    String partitionLocation = partition.getSd().getLocation();
-
-    try (ArcticFileIO io = table.io()) {
-      List<FileStatus> files = io.list(partitionLocation);
-      for (FileStatus f : files) {
-        Path filePath = f.getPath();
-        if (!deleteFiles.contains(filePath)) {
-          throw new CannotAlterHiveLocationException(
-              "can't delete hive partition: " + partitionToString(partition) +
-                  ", file under partition is not deleted: " +
-                  filePath.toString());
-        }
-      }
-    }
-
+  //    String partitionLocation = partition.getSd().getLocation();
+  //
+  //    try (ArcticFileIO io = table.io()) {
+  //      List<FileStatus> files = io.list(partitionLocation);
+  //      for (FileStatus f : files) {
+  //        Path filePath = f.getPath();quit
+  //        if (!deleteFiles.contains(filePath)) {
+  //          throw new CannotAlterHiveLocationException(
+  //              "can't delete hive partition: " + partitionToString(partition) +
+  //                  ", file under partition is not deleted: " +
+  //                  filePath.toString());
+  //        }
+  //      }
+  //    }
   }
 
   /**

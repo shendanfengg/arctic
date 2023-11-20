@@ -40,7 +40,7 @@ public class OptimizeCommitWorker implements Runnable {
       while (!ArcticMetaStore.isStarted()) {
         Thread.sleep(1000);
       }
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         try {
           TableOptimizeItem tableOptimizeItem = ServiceContainer.getOptimizeService().takeTableToCommit();
           currentTable = tableOptimizeItem;
