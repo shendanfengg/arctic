@@ -21,12 +21,15 @@ package com.netease.arctic.flink.read.source.log.kafka;
 import org.apache.flink.connector.kafka.source.split.KafkaPartitionSplit;
 import org.apache.flink.connector.kafka.source.split.KafkaPartitionSplitState;
 import org.apache.flink.table.data.RowData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
 public class LogKafkaPartitionSplitState extends KafkaPartitionSplitState {
+  private static final Logger LOG = LoggerFactory.getLogger(LogKafkaPartitionSplitState.class);
 
   /**
    * Denote reader is in retracting read mode.
@@ -61,6 +64,7 @@ public class LogKafkaPartitionSplitState extends KafkaPartitionSplitState {
 
   public LogKafkaPartitionSplitState(KafkaPartitionSplit s) {
     super(s);
+    LOG.info("in LogKafkaPartitionSplitState construct method, currentOffset is {}",s.getStartingOffset());
 
     if (!(s instanceof LogKafkaPartitionSplit)) {
       retracting = false;
