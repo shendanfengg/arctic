@@ -21,6 +21,12 @@
 This document provides guidelines for contributing to Amoro. While these suggestions are not strict
 rules, they aim to facilitate a smooth contribution experience.
 
+If you are thinking of contributing but first would like to discuss the change you wish to make, 
+we welcome you to head over to the [Join Community](https://amoro.apache.org/join-community/) page 
+on the official Amoro documentation site to find a number of ways to connect with the community, 
+including [Slack](https://the-asf.slack.com/archives/C06RZ9UHUTH) and our mailing lists. Of course, always feel free to just open a [new issue](https://github.com/apache/amoro/issues/new) in the 
+GitHub repo. You can also check the following for a [good first issue](https://github.com/apache/amoro/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
 ## Issues
 
 Regardless of the type of contribution you plan to make, it is recommended that you create an issue
@@ -35,12 +41,11 @@ to track it.
     * Bug: A problem that prevents the project from functioning as intended.
     * Subtask: A subtask of a Feature/Improvement that can be broken down into smaller steps.
 
+You can assign the issue to yourself by leaving a comment with content `take`.
+
 ## Pull requests
 
 Pull requests are the preferred mechanism for contributing to Amoro
-
-### Contributor License Agreement
-Before your contribution, To get your PR merged, you must submit [Amoro's Contributor License Agreement (CLA) ](https://cla-assistant.io/apache/amoro)first. You only need to submit it ONCE.
 
 * Generally, create a PR only to the master branch.
 * PR should be linked to the corresponding issue.
@@ -79,37 +84,94 @@ a [design document template](https://docs.google.com/document/d/1LeTyrlzQJfSs2Dk
 for reference.
 
 ## Building the Project Locally
-Amoro is built using Maven with Java 1.8 and Java 17(only for `mixed-format/trino` module).
 
-* To build Trino module need config `toolchains.xml` in `${user.home}/.m2/` dir, the content is
+[Build Guide](https://github.com/apache/amoro?tab=readme-ov-file#building) can be found in GitHub readme.
 
+## Importing the Amoro project into IntelliJ IDEA
+
+The following guide describes how to import the Amoro project into IntelliJ IDEA and deploy it.
+
+### Requirements
++ Java Version: Java 11 is required.
+
+#### Required plugins
+1. Go to `Settings` → `Plugins` in IntelliJ IDEA.
+2. Select the “Marketplace” tab.
+3. Search for and install the following plugins:
+    - Scala
+4. Restart IntelliJ IDEA if prompted.
+
+### Import Amoro into IntelliJ IDEA
+This guide is based on IntelliJ IDEA 2024. Some details might differ in other versions.
+
+1. Clone the repository and create the test configuration file:
+
+```shell
+$ git clone https://github.com/apache/amoro.git
+$ cd amoro
+$ base_dir=$(pwd)
+$ mkdir -p conf
+$ cp dist/src/main/amoro-bin/conf/config.yaml conf/config.yaml
+$ sed -i '' "s|/tmp/amoro/derby|${base_dir}/conf/derby|g" conf/config.yaml
 ```
-<?xml version="1.0" encoding="UTF-8"?>
-<toolchains>
-    <toolchain>
-        <type>jdk</type>
-        <provides>
-            <version>17</version>
-            <vendor>sun</vendor>
-        </provides>
-        <configuration>
-            <jdkHome>${YourJDK17Home}</jdkHome>
-        </configuration>
-    </toolchain>
-</toolchains>
-```
+The above text replacement command is applicable to macOS. In the Linux system, `-i ''` should be replaced with `-i`.
 
-* To invoke a build and run tests: `mvn package -P toolchain`
-* To skip tests: `mvn -DskipTests package -P toolchain`
-* To package without trino module and JAVA 17 dependency: `mvn clean package -DskipTests -pl '!mixed-format/trino'`
-* To build with hadoop 2.x(the default is 3.x) `mvn clean package -DskipTests -Dhadoop=v2`
-* To indicate Flink version for optimizer (the default is 1.18.1): `mvn clean package -Dflink-optimizer.flink-version=1.15.4`. If the version of Flink is below 1.15.0, you also need to add the `-Pflink-pre-1.15` parameter: `mvn clean package -Pflink-pre-1.15 -Dflink-optimizer.flink-version=1.14.6`.
-  `mvn clean package -Pflink-pre-1.15 -Dflink-optimizer.flink-version=1.14.6 -DskipTests`
+2. Import the project:
+    1. Open IntelliJ IDEA and select `File`->`Open`.
+    2. Choose the root folder of the cloned Amoro repository.
+3. Configure Java version:
+    1. Open the `Maven` tab on the right side of the IDE.
+    2. Expand `Profiles` and ensure the selected Java version matches your IDE's Java version.
+    3. To check or change the project SDK, go to `File`->`Project Structure...`->`Project`->`SDK`.
 
->Spotless is skipped by default in `trino` module. So if you want to perform checkstyle when building `trino` module, you must be in a Java 17 environment.
+4. Load dependencies
 
-* To invoke a build include `mixed-format/trino` module in Java 17 environment: `mvn clean package -DskipTests -P trino-spotless`
-* To only build `mixe-format/trino` and its dependent modules in Java 17 environment: `mvn clean package -DskipTests -P trino-spotless -pl 'mixed-format/trino' -am`
+   In the `Maven` tab,  click the `Reload All Maven Projects` button, or right-click the imported Amoro project in the Project view and select `Maven`->`Reload project`.
+
+### Start AMS
+1. Open the following file:
+
+`
+{base_dir}/amoro-ams/src/main/java/org/apache/amoro/server/AmoroServiceContainer.java
+`
+
+2. In the top right corner of IntelliJ IDEA, click the `Run AmoroServiceContainer` button to start the AMS service.
+3. Once the service has started, open your web browser and navigate to: [http://localhost:1630](http://localhost:1630/)
+4. If you see the login page, the startup was successful. The default username and password for login are both `admin`.
+
+### Start the optimizer
+#### Add an optimizer group
+1. Open http://localhost:1630 in your browser and log in with admin/admin.
+2. Click on `Optimizing` in the sidebar, select `Optimizer Groups`, and click the `Add Group` button to create a new group.
+3. Configure the newly added Optimizer group:
+   ![config-optimizer-group](docs/images/admin/config-optimizer-group.png)
+
+   The following configuration needs to be filled in:
+
+    - Name: the name of the optimizer group, which can be seen in the list of optimizer groups on the front-end page.
+    - Container: the name of a container configured in containers.
+    - Properties: the default configuration under this group, is used as a configuration parameter for tasks when the optimize page is scaled out.
+
+
+#### Start an optimizer in IntelliJ IDEA
+1. Open the following file in IntelliJ IDEA:
+
+`
+{base_dir}/amoro-optimizer/amoro-optimizer-standalone/src/main/java/org/apache/amoro/optimizer/standalone/StandaloneOptimizer.java
+`
+
+2. Click the `Run/Debug Configurations` button in the top right corner of IntelliJ IDEA and select `Current File`.
+3. Click `More Actions` on the right side and select `Run with Parameters...`.
+4. In `Build and run`, enter the following parameters in the `Program arguments:`:`-a thrift://127.0.0.1:1261 -p 1 -g local`
+
+   The detailed description of the relevant parameters can be found in [Managing Optimizers](https://amoro.apache.org/docs/latest/managing-optimizers/).
+
+5. Click `Apply` and `Run` to start an optimizer.
+6. In the Amoro dashboard, click on `Optimizing` in the sidebar and choose `Optimizers`. If you see a newly created optimizer, the startup was successful.
+
+### Quickstart
+To quickly explore Amoro's core features, such as self-optimizing, visit [Quickstart](https://amoro.apache.org/quick-start/).
+
 
 ## Code suggestions
 
@@ -119,7 +181,7 @@ Amoro uses [Spotless](https://github.com/diffplug/spotless/tree/main/plugin-mave
 [google-java-format](https://github.com/google/google-java-format) to format the Java code. For
 Scala, it uses Spotless with [scalafmt](https://scalameta.org/scalafmt/).
 
-You can format your code by executing the command `mvn spotless:apply` in the root directory of
+You can format your code by executing the command `dev/reformat` in the root directory of
 project.
 
 Or you can configure your IDEA to automatically format your code. Then you will need to install
@@ -142,6 +204,14 @@ After installing the plugin, format your code automatically by applying the foll
 6. Go to “Settings/Preferences” → “Tools” → “Actions on Save”.
 7. Under “Formatting Actions”, select “Optimize imports” and “Reformat file”.
 8. From the “All file types list” next to “Reformat code”, select Java and Scala.
+
+### Updating Configuration Documentation
+
+If you modify ConfigOptions, please regenerate the configuration documentation by running:
+
+```shell
+UPDATE=1 ./mvnw test -pl amoro-ams -am -Dtest=ConfigurationsTest
+```
 
 ### Copyright
 

@@ -8,6 +8,22 @@ menu:
         parent: Flink
         weight: 100
 ---
+<!--
+ - Licensed to the Apache Software Foundation (ASF) under one or more
+ - contributor license agreements.  See the NOTICE file distributed with
+ - this work for additional information regarding copyright ownership.
+ - The ASF licenses this file to You under the Apache License, Version 2.0
+ - (the "License"); you may not use this file except in compliance with
+ - the License.  You may obtain a copy of the License at
+ -
+ -   http://www.apache.org/licenses/LICENSE-2.0
+ -
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+ -->
 # Flink Getting Started
 
 ## Iceberg format
@@ -36,32 +52,24 @@ Flink Connector includes:
 - `FlinkSink` writes data to Amoro tables through Apache Flink DS API.
 - `Flink Lookup Join` performs real-time read of Amoro table data for association calculation through Apache Flink Temporal Join grammar.
 
-Version Description:
-
-| Connector Version | Flink Version | Dependent Iceberg Version                                                                                                                |
-| ----------------- |---------------|  ----------------- |
-| 0.6.0             | 1.15.x        | 1.3.0            |
-| 0.6.0             | 1.16.x        | 1.3.0            |
-| 0.6.0             | 1.17.x        | 1.3.0            |
-
 The Amoro project can be self-compiled to obtain the runtime jar.
 
-`mvn clean package -pl ':amoro-mixed-flink-runtime-1.15' -am -DskipTests`
+`./mvnw clean package -pl ':amoro-mixed-flink-runtime-1.17' -am -DskipTests`
 
-The Flink Runtime Jar is located in the `flink/v1.15/flink-runtime/target` directory.
+The Flink Runtime Jar is located in the `amoro-format-mixed/amoro-mixed-flink/v1.17/amoro-mixed-flink-runtime-1.17/target` directory.
 
 ## Environment preparation
-Download Flink and related dependencies, and download Flink 1.15/1.16/1.17 as needed. Taking Flink 1.15 as an example:
+Download Flink and related dependencies, and download Flink 1.17/1.18 as needed. Taking Flink 1.17 as an example:
 ```shell
 # Replace version value with the latest Amoro version if needed
-AMORO_VERSION=0.6.0
-FLINK_VERSION=1.15.3
-FLINK_MAJOR_VERSION=1.15
+AMORO_VERSION=0.8.0-incubating
+FLINK_VERSION=1.17.2
+FLINK_MAJOR_VERSION=1.17
 FLINK_HADOOP_SHADE_VERSION=2.7.5
 APACHE_FLINK_URL=archive.apache.org/dist/flink
 MAVEN_URL=https://repo1.maven.org/maven2
 FLINK_CONNECTOR_URL=${MAVEN_URL}/org/apache/flink
-AMORO_CONNECTOR_URL=${MAVEN_URL}/com/netease/amoro
+AMORO_CONNECTOR_URL=${MAVEN_URL}/org/apache/amoro
 
 # Download FLink binary package
 wget ${APACHE_FLINK_URL}/flink-${FLINK_VERSION}/flink-${FLINK_VERSION}-bin-scala_2.12.tgz
@@ -72,17 +80,17 @@ cd flink-${FLINK_VERSION}
 # Download Flink Hadoop dependency
 wget ${FLINK_CONNECTOR_URL}/flink-shaded-hadoop-2-uber/${FLINK_HADOOP_SHADE_VERSION}-10.0/flink-shaded-hadoop-2-uber-${FLINK_HADOOP_SHADE_VERSION}-10.0.jar
 # Download Flink Amoro Connector
-wget ${AMORO_CONNECTOR_URL}/amoro-mixed-flink-runtime-${FLINK_MAJOR_VERSION}/${AMORO_VERSION}/amoro-mixed-flink-runtime-${FLINK_MAJOR_VERSION}-${AMORO_VERSION}.jar
+wget ${AMORO_CONNECTOR_URL}/amoro-mixed-format-flink-runtime-${FLINK_MAJOR_VERSION}/${AMORO_VERSION}/amoro-mixed-format-flink-runtime-${FLINK_MAJOR_VERSION}-${AMORO_VERSION}.jar
 
 # Copy the necessary JAR files to the lib directory
 mv flink-shaded-hadoop-2-uber-${FLINK_HADOOP_SHADE_VERSION}-10.0.jar lib
-mv amoro-mixed-flink-runtime-${FLINK_MAJOR_VERSION}-${AMORO_VERSION}.jar lib
+mv amoro-mixed-format-flink-runtime-${FLINK_MAJOR_VERSION}-${AMORO_VERSION}.jar lib
 ```
 
 Modify Flink related configuration files:
 
 ```shell
-cd flink-1.15.3
+cd flink-1.17.2
 vim conf/flink-conf.yaml
 ```
 Modify the following settings:
@@ -120,6 +128,6 @@ You need to enable Flink checkpoint and modify the [Flink checkpoint configurati
 
 The query results obtained through Flink SQL-Client cannot provide MOR semantics based on primary keys. If you need to obtain merged results through Flink engine queries, you can write the content of Amoro tables to a MySQL table through JDBC connector for viewing.
 
-**3. When writing to Amoro tables with write.upsert feature enabled through SQL-Client under Flink 1.15, there are still duplicate primary key data**
+**3. When writing to Amoro tables with write.upsert feature enabled through SQL-Client under Flink 1.17, there are still duplicate primary key data**
 
 You need to execute the command `set table.exec.sink.upsert-materialize = none` in SQL-Client to turn off the upsert materialize operator generated upsert view. This operator will affect the AmoroWriter's generation of delete data when the write.upsert feature is enabled, causing duplicate primary key data to not be merged.

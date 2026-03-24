@@ -8,6 +8,22 @@ menu:
         parent: Admin Guides
         weight: 150
 ---
+<!--
+ - Licensed to the Apache Software Foundation (ASF) under one or more
+ - contributor license agreements.  See the NOTICE file distributed with
+ - this work for additional information regarding copyright ownership.
+ - The ASF licenses this file to You under the Apache License, Version 2.0
+ - (the "License"); you may not use this file except in compliance with
+ - the License.  You may obtain a copy of the License at
+ -
+ -   http://www.apache.org/licenses/LICENSE-2.0
+ -
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+ -->
 # Deploy AMS On Kubernetes
 
 ## Requirements
@@ -21,17 +37,21 @@ If you want to deploy AMS on Kubernetes, you’d better get a sense of the follo
 
 ## Amoro Official Docker Image
 
-You can find the official docker image at [Amoro Docker Hub](https://hub.docker.com/u/arctic163).
+You can find the official docker image at [Amoro Docker Hub](https://hub.docker.com/u/apache).
 
 The following are images that can be used in a production environment.
 
-**arctic163/amoro**
+**apache/amoro**
 
 This is an image built based on the Amoro binary distribution package for deploying AMS.
 
-**arctic163/optimizer-flink**
+**apache/amoro-flink-optimizer**
 
 This is an image built based on the official version of Flink for deploying the Flink optimizer.
+
+**apache/amoro-spark-optimizer**
+
+This is an image built based on the official version of Spark for deploying the Spark optimizer.
 
 ## Build AMS Docker Image
 
@@ -41,28 +61,20 @@ If you want to build images locally, you can find the `build.sh` script in the d
 ./docker/build.sh amoro
 ```
 
-or build the `optimizer-flink` image by:
+or build the `amoro-flink-optimizer` image by:
 
 ```shell
-./docker/build.sh optimizer-flink --flink-version <flink-version>
+./docker/build.sh amoro-flink-optimizer --flink-version <flink-version>
 ```
 
+or build the `amoro-spark-optimizer` image by:
+
+```shell
+./docker/build.sh amoro-spark-optimizer --spark-version <spark-version>
+```
 
 ## Get Helm Charts
-
-You can obtain the latest official release chart by adding the official Helm repository.
-
-```shell
-$ helm repo add amoro https://netease.github.io/amoro/charts
-$ helm search repo amoro 
-NAME           CHART VERSION    APP VERSION        DESCRIPTION           
-amoro/amoro    0.1.0            0.6.0              A Helm chart for Amoro 
-
-$ helm pull amoro/amoro 
-$ tar zxvf amoro-*.tgz
-```
-
-Alternatively, you can find the latest charts directly from the Github source code.
+You can find the latest charts directly from the Github source code.
 
 ```shell
 $ git clone https://github.com/apache/amoro.git
@@ -131,17 +143,17 @@ ingress:
 
 ### Configure the database.
 
-AMS default is to use Derby database for storage. When the pod is destroyed, the data will also disappear.
-In production environments, we recommend using MySQL as the storage for system data.
+AMS uses embedded [Apache Derby](https://db.apache.org/derby/) as its backend storage by default.
+In production environments, we recommend using a RDBMS(Relational Database Management System) with higher availability guarantees as the storage for system data, you can ref to [Database Configuration](/deployment/#configure-system-database) for more detail.
 
 ```yaml
 amoroConf: 
   database:
-    type: mysql
-    driver: com.mysql.cj.jdbc.Driver
-    url: <jdbc-uri>
-    username: <mysql-user>
-    password: <mysql-password>
+    type: ${your_database_type}
+    driver: ${your_database_driver}
+    url: ${your_jdbc_url}
+    username: ${your_username}
+    password: ${your_password}
 ```
 
 
@@ -156,6 +168,7 @@ image:
   repository: <your repository>
   pullPolicy: IfNotPresent
   tag: <your tag>
+imagePullSecrets: [ ]
 ```
 
 ### Configure the Flink Optimizer Container
@@ -171,9 +184,10 @@ optimizer:
     name: ~ 
     image:
       ## the image repository
-      repository: arctic163/optimizer-flink
+      repository: apache/amoro-flink-optimizer
       ## the image tag, if not set, the default value is the same with amoro image tag.
       tag: ~
+      pullPolicy: IfNotPresent
       ## the location of flink optimizer jar in image.
       jobUri: "local:///opt/flink/usrlib/optimizer-job.jar"
     properties: {
@@ -181,6 +195,58 @@ optimizer:
       "flink-conf.taskmanager.memory.network.max": "32mb",
       "flink-conf.taskmanager.memory.network.min": "32mb"
     }
+```
+### Configure the Kubernetes Optimizer Container
+
+By default, the Kubernetes Optimizer Container is enabled.
+You can modify the container configuration by changing the `optimizer.Kubernetes` section.
+
+```yaml
+optimizer:
+  kubernetes:
+    # enable the kubernetes optimizer container
+    enabled: true
+    properties:
+      namespace: "default"
+      kube-config-path: "~/.kube/config"
+      image: "apache/amoro:latest"
+      pullPolicy: "IfNotPresent"
+      # configure additional parameters by using the extra. prefix
+      # extra.jvm.heap.ratio: "0.8"
+```
+
+To use PodTemplate, you need to copy and paste the following into the `kubernetes.properties`.
+
+This is the default podTemplate, and when the user doesn't specify any additional parameters, the default is to use the template's parameters
+
+Therefore, there will be a priority issue that needs to be elaborated: _Resource(WebUi) > Independent User Profile Configuration > PodTemplate_
+
+```yaml
+podTemplate: |
+  apiVersion: apps/v1
+  kind: PodTemplate
+  metadata:
+    name: <NAME_PREFIX><resourceId>
+  template:
+    metadata:
+      labels:
+        app: <NAME_PREFIX><resourceId>
+        AmoroOptimizerGroup: <groupName>
+        AmoroResourceId: <resourceId>
+    spec:
+      containers:
+        - name: optimizer
+          image: apache/amoro:0.6
+          imagePullPolicy: IfNotPresent
+          command: [ "sh", "-c", "echo 'Hello, World!'" ]
+          resources:
+            limits:
+              memory: 2048Mi
+              cpu: 2
+            requests:
+              memory: 2048Mi
+              cpu: 2
+
 ```
 
 

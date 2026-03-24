@@ -28,14 +28,11 @@
   - "NOTICE-binary"
   - "codecov.yml"
   - "dev/**/*"
-  - "style/**/*"
+  - "tools/**/*"
 
 "type:build":
-  - ".dockerignore"
-  - ".rat-excludes"
-  - ".scalafmt"
   - "**/*pom.xml"
-  - "ams/dist/**/*"
+  - "dist/**/*"
   - "docker/**/*"
   - "charts/**/"
 
@@ -43,27 +40,29 @@
   - "*.md"
   - "docs/**/*"
 
-"module:core":
-  - "core/**/*"
+"type:site":
+  - "site/**/*"
+
+"module:common":
+  - "amoro-common/**/*"
 
 "module:ams-server":
-  - "ams/api/**/*"
-  - "ams/server/**/*"
+  - "amoro-ams/**/*"
 
 "module:ams-dashboard":
-  - "ams/dashboard/**/*"
+  - "amoro-web/**/*"
 
 "module:ams-optimizer":
-  - "ams/optimizer/**/*"
+  - "amoro-optimizer/**/*"
 
 "module:mixed-spark":
-  - "mixed-format/spark/**/*"
+  - "amoro-format-mixed/amoro-mixed-spark/**/*"
 
 "module:mixed-flink":
-  - "mixed-format/flink/**/*"
+  - "amoro-format-mixed/amoro-mixed-flink/**/*"
 
 "module:mixed-hive":
-  - "mixed-format/hive/**/*"
+  - "amoro-format-mixed/amoro-mixed-hive/**/*"
 
 "module:mixed-trino":
-  - "mixed-format/trino/**/*"
+  - "amoro-format-mixed/amoro-mixed-trino/**/*"

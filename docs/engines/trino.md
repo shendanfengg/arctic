@@ -7,7 +7,22 @@ menu:
     main:
         weight: 800
 ---
-
+<!--
+ - Licensed to the Apache Software Foundation (ASF) under one or more
+ - contributor license agreements.  See the NOTICE file distributed with
+ - this work for additional information regarding copyright ownership.
+ - The ASF licenses this file to You under the Apache License, Version 2.0
+ - (the "License"); you may not use this file except in compliance with
+ - the License.  You may obtain a copy of the License at
+ -
+ -   http://www.apache.org/licenses/LICENSE-2.0
+ -
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+ -->
 # Trino
 
 ## Iceberg format
@@ -25,8 +40,8 @@ please refer to the documentation at [Paimon Trino user manual](https://paimon.a
   and extract the contents of the amoro-trino package amoro-mixed-trino-xx.tar.gz to the {trino_home}/plugin/amoro directory.
 - Configure the Catalog configuration file for Amoro in the {trino_home}/etc/catalog directory, for example:
 ```tex
-connector.name=arctic
-arctic.url=thrift://{ip}:{port}/{catalogName}
+connector.name=mixed-format
+amoro.url=thrift://{ip}:{port}/{catalogName}
 ```
 - Configure the JVM configuration file for Trino in the {trino_home}/etc directory named `jvm.config` :
 ```tex
@@ -94,14 +109,14 @@ Three additional columns will be included in the query result, which are:
 
 ### Trino uses proxy user to access Hadoop cluster.
 By default, when Trino queries Amoro, it uses the Hadoop user configured in the [catalog creation](../managing-catalogs/#create-catalog) to access the Hadoop cluster.
-To use Trino's user to access the Hadoop cluster, you need enable Hadoop impersonation by adding the arctic.hdfs.impersonation.enabled=true parameter in the Amoro catalog configuration file located in the {trino_home}/etc/catalog directory, as follows.
+To use Trino's user to access the Hadoop cluster, you need enable Hadoop impersonation by adding the mixed-format.hdfs.impersonation.enabled=true parameter in the Amoro catalog configuration file located in the {trino_home}/etc/catalog directory, as follows.
 
 ```tex
-connector.name=arctic
-arctic.url=thrift://{ip}:{port}/{catalogName}
-arctic.hdfs.impersonation.enabled=true
+connector.name=mixed-format
+amoro.url=thrift://{ip}:{port}/{catalogName}
+mixed-format.hdfs.impersonation.enabled=true
 ```
-`arctic.hdfs.impersonation.enabled` default false
+`mixed-format.hdfs.impersonation.enabled` default false
 
 {{< hint info >}}
 To use Hadoop impersonation, you need to enable the proxy feature for the Hadoop user configured in the [catalog creation](../managing-catalogs/#create-catalog) in the Hadoop cluster beforehand，

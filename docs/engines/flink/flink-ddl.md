@@ -8,6 +8,22 @@ menu:
         parent: Flink
         weight: 200
 ---
+<!--
+ - Licensed to the Apache Software Foundation (ASF) under one or more
+ - contributor license agreements.  See the NOTICE file distributed with
+ - this work for additional information regarding copyright ownership.
+ - The ASF licenses this file to You under the Apache License, Version 2.0
+ - (the "License"); you may not use this file except in compliance with
+ - the License.  You may obtain a copy of the License at
+ -
+ -   http://www.apache.org/licenses/LICENSE-2.0
+ -
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+ -->
 # Flink DDL
 
 ## Create catalogs
@@ -17,18 +33,20 @@ The following statement can be executed to create a Flink catalog:
 
 ```sql
 CREATE CATALOG <catalog_name> WITH (
-  'type'='arctic',
+  'type'='mixed_iceberg',
   `<config_key>`=`<config_value>`
 ); 
 ```
 
 Where `<catalog_name>` is the user-defined name of the Flink catalog, and `<config_key>`=`<config_value>` has the following configurations:
 
-| Key                                    | Default Value | Type    | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-|----------------------------------------|---------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| metastore.url                          | (none)        | String  | Yes      | The URL for Amoro Metastore is thrift://`<ip>`:`<port>`/`<catalog_name_in_metastore>`.<br>If high availability is enabled for AMS, it can also be specified in the form of zookeeper://{zookeeper-server}/{cluster-name}/{catalog-name}.                                                                                                                                                                                                                             |
-| default-database<img width=100/>       | default       | String  | No       | The default database to use                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| property-version                       | 1             | Integer | No       | Catalog properties version, this option is for future backward compatibility                                                                                                                                                                                                                                                                                                                                                                                          |
+| Key              | Default Value | Type    | Required | Description                                                                                                                                                                                                                              |
+|------------------|---------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| type             | N/A           | String  | Yes      | Catalog type, validate values are mixed_iceberg and mixed_hive                                                                                                                                                                           |
+| ams.uri          | (none)        | String  | No       | The URI for Amoro Metastore is thrift://`<ip>`:`<port>`/`<catalog_name_in_metastore>`.<br>If high availability is enabled for AMS, it can also be specified in the form of zookeeper://{zookeeper-server}/{cluster-name}/{catalog-name}. |
+| default-database | default       | String  | No       | The default database to use                                                                                                                                                                                                              |
+| property-version | 1             | Integer | No       | Catalog properties version, this option is for future backward compatibility                                                                                                                                                             |
+| catalog-type     | N/A           | String  | No       | Metastore type of the catalog, validate values are hadoop, hive, rest, custom                                                                                                                                                            |
 
 The authentication information of AMS catalog can upload configuration files on AMS website,
 or specify the authentication information and configuration file paths when creating catalogs with Flink DDL
@@ -49,8 +67,8 @@ Modify the `conf/sql-client-defaults.yaml` file in the Flink directory.
 ```yaml
 catalogs:
 - name: <catalog_name>
-  type: arctic
-  metastore.url: ...
+  type: mixed_iceberg
+  ams.uri: ...
   ...
 ```
 
@@ -60,15 +78,15 @@ catalogs:
 By default, the default-database configuration (default value: default) when creating catalog is used. You can create a database using the following example:
 
 ```sql
-CREATE DATABASE [catalog_name.]arctic_db;
+CREATE DATABASE [catalog_name.]mixed_db;
 
-USE arctic_db;
+USE mixed_db;
 ```
 
 ### CREATE TABLE
 
 ```sql
-CREATE TABLE `arctic_catalog`.`arctic_db`.`test_table` (
+CREATE TABLE `mixed_catalog`.`mixed_db`.`test_table` (
     id BIGINT,
     name STRING,
     op_time TIMESTAMP,
@@ -92,7 +110,7 @@ Currently, most of the syntax supported by [Flink SQL create table](https://nigh
 #### PARTITIONED BY
 Create a partitioned table using PARTITIONED BY.
 ```sql
-CREATE TABLE `arctic_catalog`.`arctic_db`.`test_table` (
+CREATE TABLE `mixed_catalog`.`new`.`test_table` (
     id BIGINT,
     name STRING,
     op_time TIMESTAMP
@@ -111,27 +129,27 @@ CREATE TABLE `test_table` (
     proc as PROCTIME(),
     PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
-    'connector' = 'arctic',
-    'metastore.url' = '',
-    'arctic.catalog' = '',
-    'arctic.database' = '',
-    'arctic.table' = ''
+    'connector' = 'mixed-format',
+    'ams.uri' = '',
+    'mixed_format.catalog' = '',
+    'mixed_format.database' = '',
+    'mixed_format.table' = ''
 );
 ```
-where `<metastore.url>` is the URL of the Amoro Metastore, and `arctic.catalog`, `arctic.database` and `arctic.table` are the catalog name, database name and table name of this table under the AMS, respectively.
+where `<ams.uri>` is the URI of the Amoro Metastore, and `mixed_format.catalog`, `mixed_format.database` and `mixed_format.table` are the catalog name, database name and table name of this table under the AMS, respectively.
 
 ### CREATE TABLE LIKE
 Create a table with the same table structure, partitions, and table properties as an existing table. This can be achieved using CREATE TABLE LIKE.
 
 ```sql
-CREATE TABLE `arctic_catalog`.`arctic_db`.`test_table` (
+CREATE TABLE `mixed_catalog`.`mixed_db`.`test_table` (
     id BIGINT,
     name STRING,
     op_time TIMESTAMP
 );
 
-CREATE TABLE  `arctic_catalog`.`arctic_db`.`test_table_like` 
-    LIKE `arctic_catalog`.`arctic_db`.`test_table`;
+CREATE TABLE  `mixed_catalog`.`mixed_db`.`test_table_like` 
+    LIKE `mixed_catalog`.`mixed_db`.`test_table`;
 ```
 Further details can be found in [Flink create table like](https://nightlies.apache.org/flink/flink-docs-release-1.12/dev/table/sql/create.html#like)
 
@@ -140,12 +158,12 @@ Further details can be found in [Flink create table like](https://nightlies.apac
 ### DROP DATABASE
 
 ```sql
-DROP DATABASE catalog_name.arctic_db
+DROP DATABASE catalog_name.mixed_db
 ```
 
 ### DROP TABLE
 ```sql
-DROP TABLE `arctic_catalog`.`arctic_db`.`test_table`;
+DROP TABLE `mixed_catalog`.`mixed_db`.`test_table`;
 ```
 
 ## SHOW statement
@@ -202,7 +220,7 @@ Not supported at the moment
 | ROW             | STRUCT         |
 
 
-### Mixed-Iceberg data types
+### mixed_iceberg data types
 | Flink Data Type                   | Mixed-Iceberg Data Type |
 |-----------------------------------|-------------------------|
 | CHAR(p)                           | STRING                  |
